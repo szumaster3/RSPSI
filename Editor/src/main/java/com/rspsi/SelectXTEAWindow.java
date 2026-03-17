@@ -8,110 +8,126 @@ import com.rspsi.util.FXUtils;
 import com.rspsi.util.FilterMode;
 import com.rspsi.util.RetentionFileChooser;
 
-import javafx.application.Application;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-public class SelectXTEAWindow extends Application {
+public class SelectXTEAWindow {
 
 	private Stage stage;
 	private boolean okClicked;
-	
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-		this.stage = primaryStage;
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/xteapicker.fxml"));
-	
-		loader.setController(this);
-		Parent content = loader.load();
-		Scene scene = new Scene(content);
 
+	@FXML
+	private TextField landscapeText;
 
-		primaryStage.setTitle("Please select file to load");
-		primaryStage.initStyle(StageStyle.UTILITY);
-		primaryStage.setScene(scene);
-		primaryStage.getIcons().add(ResourceLoader.getSingleton().getLogo64());
+	@FXML
+	private Button landscapeBrowse;
 
-		primaryStage.centerOnScreen();
-		FXUtils.centerStage(primaryStage);
-		primaryStage.setAlwaysOnTop(true);
-		
+	@FXML
+	private Button okButton;
+
+	@FXML
+	private Button cancelButton;
+
+	public SelectXTEAWindow() {
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/xteapicker.fxml"));
+			loader.setController(this);
+
+			Parent content = loader.load();
+
+			stage = new Stage();
+			Scene scene = new Scene(content);
+
+			stage.setTitle("Please select file to load");
+			stage.initStyle(StageStyle.UTILITY);
+			stage.setScene(scene);
+			stage.getIcons().add(ResourceLoader.getSingleton().getLogo64());
+
+			stage.centerOnScreen();
+			FXUtils.centerStage(stage);
+			stage.setAlwaysOnTop(true);
+
+			setupEvents();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void setupEvents() {
+
 		Consumer<TextField> finishBrowse = textField -> {
-			File f = RetentionFileChooser.showOpenDialog(stage, textField.getText(), FilterMode.JSON);
-			if(f != null && f.exists()) {
-				textField.setText(f.getAbsolutePath());
+
+			File startDir = null;
+
+			if(textField.getText() != null && !textField.getText().isEmpty()) {
+				File f = new File(textField.getText());
+
+				if(f.isDirectory()) {
+					startDir = f;
+				} else if(f.getParentFile() != null && f.getParentFile().exists()) {
+					startDir = f.getParentFile();
+				}
+			}
+
+			File selected = RetentionFileChooser.showOpenDialog(stage, String.valueOf(startDir), FilterMode.JSON);
+
+			if(selected != null && selected.exists()) {
+				textField.setText(selected.getAbsolutePath());
 			}
 		};
-		
+
 		landscapeBrowse.setOnAction(evt -> finishBrowse.accept(landscapeText));
-		
-	
-		primaryStage.addEventFilter(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
-			if(event.getCode() == KeyCode.ENTER) {
-				primaryStage.hide();
+
+		stage.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+			if (event.getCode() == KeyCode.ENTER) {
 				okClicked = true;
+				stage.hide();
 			}
 		});
-		
-		
+
 		okButton.setOnAction(evt -> {
-			primaryStage.hide();
 			okClicked = true;
+			stage.hide();
 		});
+
 		cancelButton.setOnAction(evt -> {
 			reset();
-			primaryStage.hide();
+			stage.hide();
 		});
 	}
-	
+
 	public void show() {
 		stage.sizeToScene();
 		okButton.requestFocus();
 		stage.showAndWait();
-		if(!okClicked)
+
+		if (!okClicked) {
 			reset();
+		}
 	}
-	
+
 	public String getJsonLocation() {
 		return landscapeText.getText();
 	}
-	
 
 	public void reset() {
 		okClicked = false;
 	}
-	
+
 	public boolean valid() {
 		return okClicked && !landscapeText.getText().isEmpty();
 	}
 
-    @FXML
-    private TextField landscapeText;
-
-    @FXML
-    private Button landscapeBrowse;
-
-
-
-    @FXML
-    private Button okButton;
-
-    @FXML
-    private Button cancelButton;
-
 	public void setLocation(String currentXTEALoc) {
 		landscapeText.setText(currentXTEALoc);
-		
 	}
 }

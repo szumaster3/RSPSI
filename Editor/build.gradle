@@ -34,19 +34,3 @@ jar {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
-
-//task proguardTask(type: JavaExec) {
-//    description = 'Run ProGuard to optimize the JAR file.'
-//    classpath = files('path/to/proguard.jar')
-//    args = [
-//            '-injars', 'build/libs/Editor.jar',
-//            '-outjars', 'build/libs/deploy/Editor.jar',
-//            '-libraryjars', "${System.getProperty('java.home')}/lib/rt.jar",
-//            '-include', 'proguard.conf'
-//    ]
-//    doFirst {
-//        println 'Starting ProGuard task...'
-//    }
-//}
-
-//jar.finalizedBy(proguardTask)

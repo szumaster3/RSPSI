@@ -71,7 +71,7 @@ public class RegionView extends JComponent {
 			if(exists && region == null && images == null)
 				loadMap();
 			if(!exists){
-				g.setColor(java.awt.Color.black);
+				g.setColor(Color.black);
 				g.fillRect(0, 0, 64, 64);
 				TextRenderUtils.renderCenter(g2d, "NULL", 32, 18, Color.red.getRGB());
 				if(MapView.renderXY) {
@@ -97,11 +97,11 @@ public class RegionView extends JComponent {
 					}
 				} else if(images == null) {
 					region.loadTile();
-					g.setColor(java.awt.Color.black);
+					g.setColor(Color.black);
 					g.clearRect(0, 0, 64, 64);
-					g.setColor(java.awt.Color.black);
+					g.setColor(Color.black);
 					g.fillRect(0, 0, 64, 64);
-					g.setColor(java.awt.Color.white);
+					g.setColor(Color.white);
 					if(MapView.renderHash) 
 						TextRenderUtils.renderCenter(g2d, "HASH: " + hash, 32, 18, Color.white.getRGB());
 
@@ -129,14 +129,14 @@ public class RegionView extends JComponent {
 			//}	
 
 			if(this.isSelected){
-				g.setColor(new java.awt.Color(104, 66, 244, 50));
+				g.setColor(new Color(104, 66, 244, 50));
 				g.fillRect(0, 0, 64, 64);
 			} else if(this.isHovered){
-				g.setColor(new java.awt.Color(66, 134, 244, 50));
+				g.setColor(new Color(66, 134, 244, 50));
 				g.fillRect(0, 0, 64, 64);
 			}
 
-			g.setColor(java.awt.Color.red);
+			g.setColor(Color.red);
 			g.drawRect(0, 0, 64, 64);
 
 	}

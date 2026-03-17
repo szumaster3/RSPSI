@@ -24,7 +24,6 @@ import com.rspsi.plugin.loader530.TextureLoaderOSRS;
 import com.rspsi.plugin.loader530.VarbitLoaderOSRS;
 import com.rspsi.plugins.ClientPlugin;
 
-//For 718
 public class Plugin530 implements ClientPlugin {
 
     private AnimationFrameLoader frameLoader;
@@ -70,23 +69,13 @@ public class Plugin530 implements ClientPlugin {
         frameLoader.init(2500);
 
         Index configIndex = client.getCache().readFile(CacheFileType.CONFIG);
-
         floorLoader.decodeUnderlays(configIndex.getArchive(1));
         floorLoader.decodeOverlays(configIndex.getArchive(4));
-
         Index varbitIndex = client.getCache().readFile(CacheFileType.VARBIT);
         varbitLoader.decodeVarbits(varbitIndex);
-
         objLoader.decodeObjects(client.getCache().getIndexedFileSystem().getIndex(16));
-
-//		animDefLoader.init(configIndex.getArchive(12));
-//		graphicLoader.init(configIndex.getArchive(13));
-
-        areaLoader.init(configIndex.getArchive(35));
-
-//		Index skeletonIndex = client.getCache().readFile(CacheFileType.SKELETON);
-//		skeletonLoader.init(skeletonIndex);
-
+		animDefLoader.init(configIndex.getArchive(12));
+		graphicLoader.init(configIndex.getArchive(13));
         Index mapIndex = client.getCache().readFile(CacheFileType.MAP);
         mapIndexLoader.init(mapIndex);
 

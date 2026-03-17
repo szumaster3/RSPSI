@@ -103,7 +103,7 @@ public class LauncherWindow extends Application {
 
 				File inactiveFolder = new File(PLUGINS_PATH + "inactive" + File.separator);
 				File activeFolder = new File(PLUGINS_PATH + "active" + File.separator);
-				
+
 				File oldPluginFile = new File(inactiveFolder,  pluginName + ".jar");
 				File newPluginFile = new File(activeFolder, pluginName + ".jar");
 				try {
@@ -178,7 +178,7 @@ public class LauncherWindow extends Application {
 		controller.getDisabledPlugins().getItems().addAll(getPlugins("inactive"));
 	}
 	
-	private static final String PLUGINS_PATH = "plugins" + File.separator;
+	private static final String PLUGINS_PATH = "./plugins" + File.separator;
 	
 	private static List<String> getPlugins(String folderName){
 		List<String> list = Lists.newArrayList();

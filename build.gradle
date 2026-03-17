@@ -20,7 +20,6 @@ allprojects {
         maven { url "https://repo.maven.apache.org/maven2" }
         maven { url "https://repo.adobe.com/nexus/content/repositories/public/" }
     }
-
     tasks.withType(JavaCompile) {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
@@ -35,17 +34,13 @@ subprojects {
     apply plugin: 'org.openjfx.javafxplugin'
 
     dependencies {
-        // Logging and utilities
         implementation 'ch.qos.logback:logback-classic:1.2.3'
         implementation 'org.checkerframework:checker-qual:2.9.0'
         implementation 'com.google.guava:guava:28.0-jre'
         implementation 'com.google.code.gson:gson:2.8.5'
+        implementation files("${rootProject.projectDir}/libs/javafx-controls-11.jar")
+        implementation files("${rootProject.projectDir}/libs/javafx-fxml-11.jar")
 
-        // Local libraries
-        implementation files("libs/scenebuilder-kit.jar")
-        implementation files("libs/javafx-controls-11.jar")
-        implementation files("libs/javafx-fxml-11.jar")
-        implementation files("quartz-2.3.0-SNAPSHOT.jar")
     }
 
     lombok {

@@ -25,33 +25,33 @@ public class AutoSaveJob {
 		try {
 			//System.out.println("Autosave job called");
 			EventBus.getDefault().post(new StatusUpdate("Autosaving..."));
-
+			
 
 			if(client.chunks.isEmpty())
 				return;
 			boolean chunksNotLoaded = client.chunks.stream().filter(Objects::nonNull).anyMatch(chunk -> !chunk.hasLoaded());
-
+			
 			if(chunksNotLoaded)
 				return;
-
-			File autosavePath = Paths.get("References/cache/", ".rspsi", "autosave").toFile();
+			
+			File autosavePath = Paths.get(System.getProperty("user.home"), ".rspsi", "autosave").toFile();
 			if(!autosavePath.exists())
 				autosavePath.mkdirs();
-
+			
 			List<Chunk> currentChunks = Lists.newArrayList(client.chunks);
-
+		
 			byte[] saveData = MultiMapEncoder.encode(currentChunks);
-
+			
 			File objectFile = new File(autosavePath, "autosave.pack");
-
+			
 			File objectFileBackup =  new File(autosavePath, "autosave.pack.bk");
-
-
+			
+			
 			if(objectFile.exists()) {
 				objectFileBackup.delete();
 				Files.move(objectFile.toPath(), objectFileBackup.toPath());
 			}
-
+			
 			objectFile.delete();
 
 			try {
@@ -69,7 +69,7 @@ public class AutoSaveJob {
 			ex.printStackTrace();
 			//throw new JobExecutionException(ex);
 		}
-
+		
 	}
 
 }

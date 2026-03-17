@@ -639,7 +639,7 @@ public class MainController {
 				Client.getSingleton().sceneGraph.resetLastHighlightedTiles();
 			}
 			
-			/*if (oldVal == ToolType.PAINT_OVERLAY) {
+			if (oldVal == ToolType.PAINT_OVERLAY) {
 				Options.overlayPaintId.set(-1);
 				application.overlaySwatch.deselect();
 			} else if (oldVal == ToolType.PAINT_UNDERLAY) {
@@ -648,7 +648,7 @@ public class MainController {
 			} else if (oldVal == ToolType.SPAWN_OBJECT) {
 				Options.currentObject.set(null);
 				application.objectSwatch.deselect();
-			}*/
+			}
 
 			if (newVal == ToolType.SELECT_OBJECT) {
 				this.selectObjectBtn.setSelected(true);

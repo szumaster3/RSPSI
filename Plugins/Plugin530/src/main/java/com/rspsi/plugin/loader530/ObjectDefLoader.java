@@ -25,39 +25,39 @@ import java.util.stream.Stream;
 @Slf4j
 public class ObjectDefLoader extends ObjectDefinitionLoader {
 
-    private Map<Integer, ObjectDefinition> definitions = Maps.newHashMap();
+	private Map<Integer, ObjectDefinition> definitions = Maps.newHashMap();
 
-    @Override
-    public void init(Archive archive) {
+	@Override
+	public void init(Archive archive) {
 
-    }
+	}
 
-    @Override
-    public void init(Buffer data, Buffer indexBuffer) {
+	@Override
+	public void init(Buffer data, Buffer indexBuffer) {
 
-    }
+	}
 
-    private int size;
+	private int size;
 
-    public void decodeObjects(Index index) {
-        size = index.getLastArchive().getId() * 256 + index.getLastArchive().getLastFile().getId();
-        for (int id = 0; id < size; id++) {
-            int archiveId = Miscellaneous.getConfigArchive(id, 8);
-            Archive archive = index.getArchive(archiveId);
-            if (Objects.nonNull(archive)) {
-                int fileId = Miscellaneous.getConfigFile(id, 8);
-                File file = archive.getFile(fileId);
-                if (Objects.nonNull(file) && Objects.nonNull(file.getData())) {
-                    try {
-                        ObjectDefinition def = decode(id, ByteBuffer.wrap(file.getData()));
-                        definitions.put(id, def);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            }
-        }
-    }
+	public void decodeObjects(Index index) {
+		size = index.getLastArchive().getId() * 256 + index.getLastArchive().getLastFile().getId();
+		for (int id = 0; id < size; id++) {
+			int archiveId = Miscellaneous.getConfigArchive(id, 8);
+			Archive archive = index.getArchive(archiveId);
+			if (Objects.nonNull(archive)) {
+				int fileId = Miscellaneous.getConfigFile(id, 8);
+				File file = archive.getFile(fileId);
+				if (Objects.nonNull(file) && Objects.nonNull(file.getData())) {
+					try {
+						ObjectDefinition def = decode(id, ByteBuffer.wrap(file.getData()));
+						definitions.put(id, def);
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				}
+			}
+		}
+	}
 
 	public ObjectDefinition decode(int id, ByteBuffer buffer) {
 		ObjectDefinition definition = new ObjectDefinition();
@@ -249,7 +249,33 @@ public class ObjectDefLoader extends ObjectDefinitionLoader {
 					buffer.get();
 				} else if (opcode == 102) {
 					buffer.getShort();
+				} else if (opcode == 103) {
+					buffer.get();
 
+				} else if (opcode == 104) {
+					buffer.get();
+
+				} else if (opcode == 105) {
+					buffer.get();
+
+				} else if (opcode == 106) {
+					int length = buffer.get() & 0xff;
+					for (int i = 0; i < length; i++) {
+						buffer.getShort();
+						buffer.get();
+					}
+
+				} else if (opcode == 107) {
+					buffer.getShort();
+
+				} else if (opcode >= 150 && opcode <= 154) {
+					ByteBufferUtils.getOSRSString(buffer);
+
+				} else if (opcode == 160) {
+					int length = buffer.get() & 0xff;
+					for (int i = 0; i < length; i++) {
+						buffer.getShort();
+					}
 				} else if (opcode == 249) {
 					int var1 = buffer.get() & 0xff;
 					for (int var2 = 0; var2 < var1; var2++) {

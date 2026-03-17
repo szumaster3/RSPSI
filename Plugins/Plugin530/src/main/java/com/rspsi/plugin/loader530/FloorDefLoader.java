@@ -109,12 +109,6 @@ public class FloorDefLoader extends com.jagex.cache.loader.floor.FloorDefinition
 			} else if (opcode == 16) {
 				//water intensity
 				int i = buffer.get() & 0xff;
-			} else if (opcode == 20) {
-				int i = buffer.getShort() & 0xffff;
-			} else if (opcode == 21) {
-				int i = buffer.get() & 0xff;
-			} else if (opcode == 22) {
-				int i = buffer.getShort() & 0xffff;
 			} else {
 				System.out.println("Error overlay code: " + opcode + " last: " + last);
 				continue;

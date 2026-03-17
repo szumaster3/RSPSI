@@ -24,7 +24,7 @@ public class Settings {
 	public static Map<String, Object> properties = Maps.newConcurrentMap();
 
 	public static void saveSettings() {
-		Path rootDir = Paths.get("References/cache/", ".rspsi");
+		Path rootDir = Paths.get("../", ".rspsi");
 		File f = new File(rootDir.toFile(), "settings.json");
 		if(!rootDir.toFile().exists())
 			rootDir.toFile().mkdirs();
@@ -54,7 +54,7 @@ public class Settings {
 
 	public static void loadSettings() {
 		loadSettingsOld();
-		File f = new File(Paths.get("References/cache/", ".rspsi").toFile(), "settings.json");
+		File f = new File(Paths.get("../", ".rspsi").toFile(), "settings.json");
 		if(!f.exists())
 			return;
 		ObjectMapper mapper = JsonUtil.getDefaultMapper();
@@ -75,7 +75,7 @@ public class Settings {
 	}
 
 	public static void loadSettingsOld() {
-		File f = new File(Paths.get("References/cache/", ".rspsi").toFile(), "settings.conf");
+		File f = new File(Paths.get("../", ".rspsi").toFile(), "settings.conf");
 		if(!f.exists())
 			return;
 		try(FileInputStream fis = new FileInputStream(f)) {

@@ -80,18 +80,18 @@ public final class Client implements Runnable {
 	public Font jetBrainsMono;
 
 	public SceneGraph sceneGraph;
-
+	
 	public boolean cameraMoved = true;
-
+	
 	// client
 	public static HashMap<Consumer<Client>, Long> timedConsumers = Maps.newHashMap();
-
+	
 	public static ObjectProperty<ResourceResponse> lastDeliveredResource = new SimpleObjectProperty<ResourceResponse>();
-
+	
 	private Cache cache;
-
+	
 	public static BooleanProperty gameLoaded = new SimpleBooleanProperty(false);
-
+	
 	public static ObjectProperty<Exception> lastThrownException = new SimpleObjectProperty<Exception>();
 
 	public static final int[] BIT_MASKS;
@@ -99,13 +99,13 @@ public final class Client implements Runnable {
 	public static int pulseTick;
 	static boolean displayFps;
 	static int drawTick;
-
+	
 	private static Client singleton;
-
+	
 	public static Client getSingleton() {
 		return singleton;
 	}
-
+	
 	private static boolean clientLoaded;
 	private static boolean lowMemory;
 
@@ -126,9 +126,9 @@ public final class Client implements Runnable {
 	public static int tickDelta;
 
 	public static ObjectKey hoveredUID = null;
-
+	
 	public static List<Runnable> runLater = new ArrayList<>();
-
+	
 
 	public static Client initialize(int width, int height) {
 
@@ -141,7 +141,7 @@ public final class Client implements Runnable {
 		client.initFrame(height, width);
 		return client;
 	}
-
+	
 	private ReentrantLock cacheLoadingLock = new ReentrantLock();
 	public void loadCache(Path path) {
 		cacheLoadingLock.lock();
@@ -149,7 +149,7 @@ public final class Client implements Runnable {
 			this.cache = new Cache(path);
 			Thread t = new Thread(getProvider());
 			t.start();
-
+	
 			EventBus.getDefault().register(this);
 				new MeshLoader(cache.getProvider());
 		} catch (Exception e) {
@@ -159,7 +159,7 @@ public final class Client implements Runnable {
 		}
 		cacheLoadingLock.unlock();
 	}
-
+	
 	public Cache getCache() {
 		return cache;
 	}
@@ -180,7 +180,7 @@ public final class Client implements Runnable {
 	public static final void reset() {
 		unlinkCaches();
 
-
+		
 	}
 
 	public static void setHighMemory() {
@@ -265,17 +265,17 @@ public final class Client implements Runnable {
 				return distance1 > distance2 ? 1 : -1;
 			};
 			reverse.sort(comparator);
-
+			
 			Optional<Chunk> currentChunk = chunks.parallelStream().filter(chunk -> chunk.inChunk(globalX, globalY)).findFirst();
-
+			
 			if(currentChunk.isPresent())
 				reverse.addLast(currentChunk.get());
-
+			
 			this.orderedChunks = reverse;
 		}*/
 
 	public BooleanProperty errorDisplayed = new SimpleBooleanProperty(false);
-
+	
 	public final void displayErrorMessage() {
 		errorDisplayed.set(true);
 		GraphicsContext context = gameCanvas.getGraphicsContext2D();
@@ -292,8 +292,8 @@ public final class Client implements Runnable {
 			context.setFill(Color.YELLOW);
 			context.setTextAlign(TextAlignment.CENTER);
 			context.setTextBaseline(VPos.CENTER);
-
-
+			
+			
 			context.fillText("An error has occured while booting the map editor", this.getCanvasWidth() / 2, this.getCanvasHeight() / 2);
 			if(!errorMessage.isEmpty()) {
 				context.fillText(errorMessage, this.getCanvasWidth() / 2, this.getCanvasHeight() / 2 + 20);
@@ -341,7 +341,7 @@ public final class Client implements Runnable {
 	public static enum LoadState {
 		CLIENT_INIT, WAITING_INPUT, LOADING_MAP, ACTIVE, ERROR
 	}
-
+	
 	public LoadState loadState = LoadState.CLIENT_INIT;
 
 	public final void drawGameScreen() {
@@ -354,21 +354,21 @@ public final class Client implements Runnable {
 
 			gameImageBuffer.initializeRasterizer();
 			gameImageBuffer.clear(0);
-			TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(),
-					"Please select a map to load...",
+			TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(), 
+					"Please select a map to load...",  
 					gameCanvas.getWidth() / 2, gameCanvas.getHeight() / 2 - 20,
 					0xffffff);
 			drawDebugOverlay();
 			gameImageBuffer.finalize();
 		}
-
+		
 		if (loadState == LoadState.ERROR) {
 
 			gameImageBuffer.initializeRasterizer();
 			gameImageBuffer.clear(0);
-			TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(),
+			TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(), 
 					"There was an error loading the specified map!", gameCanvas.getWidth() / 2, gameCanvas.getHeight() / 2 - 20, 0xFFFFFF);
-
+			
 			drawDebugOverlay();
 			gameImageBuffer.finalize();
 		}
@@ -377,8 +377,8 @@ public final class Client implements Runnable {
 			renderView();
 		}
 
-
-
+		
+		
 		drawGameImage();
 		if (loadState == LoadState.ACTIVE && SceneGraph.minimapUpdate) {
 			if(System.currentTimeMillis() - lastMinimapUpdate > 100) {
@@ -390,7 +390,7 @@ public final class Client implements Runnable {
 					chunk.drawMinimapScene(Options.currentHeight.get());
 					chunk.drawMinimap();
 					chunk.minimapImageBuffer.finalize();
-
+					
 					drawMinimapImage();
 					SceneGraph.minimapUpdate = false;
 					gameImageBufferNeedsInit = true;
@@ -404,7 +404,7 @@ public final class Client implements Runnable {
 		}
 		tickDelta = 0;
 	}
-
+	
 	private static long lastMinimapUpdate;
 
 	public Chunk getCurrentChunk() {
@@ -443,7 +443,7 @@ public final class Client implements Runnable {
 		GameRasterizer.getInstance().setBounds(0, 0, w, h);
 		GameRasterizer.getInstance().useViewport();
 		gameImageBuffer.getGraphics().setFont(jetBrainsMono);
-
+		
 		if(sceneGraph != null)
 			sceneGraph.method310(500, 800, w, h, ai);
 
@@ -456,13 +456,13 @@ public final class Client implements Runnable {
 			cacheLoadingLock.lock();
 			log.info("Cache finished loading!");
 		}
-
+		
 		if(!errorMessage.isEmpty()) {
 			clientLoaded = true;
 			return;
 		}
 		drawLoadingText(20, "Starting up");
-
+	
 		if (clientLoaded) {
 			gameAlreadyLoaded = true;
 			return;
@@ -470,8 +470,8 @@ public final class Client implements Runnable {
 
 		clientLoaded = true;
 
-
-
+	
+		
 		ClientPluginLoader.loadPlugins();
 		try {
 
@@ -510,34 +510,72 @@ public final class Client implements Runnable {
 
 				mapFunctions = Arrays.copyOf(functions, lastIdx + 1);
 			} else {
+				mapScenes = new Sprite[0];
 				try {
-					mapScenes = Sprite.unpackAndDecode(ByteBuffer.wrap(cache.readFile(CacheFileType.SPRITE).getArchive("mapscene").readFile(0)));
-				} catch (Exception e) {
-					mapScenes = new Sprite[0];
-				}
-				try {
-					int lastIdx = 0;
-
-					Archive graphics = cache.createArchive(4, "2d graphics");
-					Sprite[] functions = new Sprite[1000];
-					try {
-						for (int function = 0; function < functions.length; function++) {
-							functions[function] = new Sprite(graphics, "mapfunction", function);
-							lastIdx = function;
+					Archive spriteArchive = cache.readFile(CacheFileType.SPRITE).getArchive("mapscene");
+					if (spriteArchive != null) {
+						byte[] packed = spriteArchive.readFile(0);
+						if (packed != null) {
+							mapScenes = Sprite.unpackAndDecode(ByteBuffer.wrap(packed));
 						}
-					} catch (Exception ex) {
-						//ex.printStackTrace();
-						lastIdx = -1;
 					}
+				} catch (Exception ignored) {
+				}
+				if (mapScenes.length == 0) {
+					try {
+						Archive graphics = cache.createArchive(4, "2d graphics");
+						if (graphics != null) {
+							Sprite[] scenes = new Sprite[1000];
+							int lastScene = -1;
+							for (int scene = 0; scene < scenes.length; scene++) {
+								try {
+									scenes[scene] = new Sprite(graphics, "mapscene", scene);
+									lastScene = scene;
+								} catch (Exception ex) {
+									break;
+								}
+							}
+							mapScenes = lastScene == -1 ? new Sprite[0] : Arrays.copyOf(scenes, lastScene + 1);
+						}
+					} catch (Exception ignored) {
+					}
+				}
 
-					mapFunctions = lastIdx == -1 ? new Sprite[0] : Arrays.copyOf(functions, lastIdx + 1);
-				} catch(Exception ex){
-					mapFunctions = new Sprite[0];
+				mapFunctions = new Sprite[0];
+				try {
+					Archive spriteArchive = cache.readFile(CacheFileType.SPRITE).getArchive("mapfunction");
+					if (spriteArchive != null) {
+						byte[] packed = spriteArchive.readFile(0);
+						if (packed != null) {
+							mapFunctions = Sprite.unpackAndDecode(ByteBuffer.wrap(packed));
+						}
+					}
+				} catch (Exception ignored) {
+				}
+				if (mapFunctions.length == 0) {
+					try {
+						Archive graphics = cache.createArchive(4, "2d graphics");
+						if (graphics != null) {
+							Sprite[] functions = new Sprite[1000];
+							int lastIdx = -1;
+							for (int function = 0; function < functions.length; function++) {
+								try {
+									functions[function] = new Sprite(graphics, "mapfunction", function);
+									lastIdx = function;
+								} catch (Exception ex) {
+									break;
+								}
+							}
+
+							mapFunctions = lastIdx == -1 ? new Sprite[0] : Arrays.copyOf(functions, lastIdx + 1);
+						}
+					} catch (Exception ignored) {
+					}
 				}
 			}
 
 			drawLoadingText(65, "Loading plugins...");
-
+			
 			ClientPluginLoader.forEach(plugin -> {
 				try {
 					plugin.onGameLoaded(this);
@@ -547,10 +585,10 @@ public final class Client implements Runnable {
 					errorMessage = "The selected plugin was unable to load";
 				}
 			});
-
+			
 			if(!errorMessage.isEmpty())
 				throw new IllegalStateException(errorMessage);
-
+			
 
 
 			log.info("Loaded {} map functions.", mapFunctions.length);
@@ -583,7 +621,7 @@ public final class Client implements Runnable {
 
 	@Getter
 	private int baseX, baseY;
-
+	
 	private Chunk lastChunk;
 
 	public final void loadCoordinates(int wX, int wY, int chunkXLength, int chunkYLength) {
@@ -592,10 +630,10 @@ public final class Client implements Runnable {
 
 		fullMapCanvas = new DisplayCanvas(chunkXLength * Options.mapRegionSize.get(), chunkYLength * Options.mapRegionSize.get(), false);
 		chunks.clear();
-
+		
 		gameImageBuffer.initializeRasterizer();
 		gameImageBuffer.clear(0);
-		TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(),
+		TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(), 
 				"Loading map, this may take a few seconds...", gameCanvas.getWidth() / 2, gameCanvas.getHeight() / 2 - 20, 0xFFFFFF);
 		// frameFont.renderCentre(256, 150, "Loading - please wait.", 0xffffff);
 		gameImageBuffer.finalize();
@@ -657,17 +695,17 @@ public final class Client implements Runnable {
 		loadState = LoadState.LOADING_MAP;
 		loadingStartTime = System.currentTimeMillis();
 	}
-
+	
 	public final void loadNew(int chunkXLength, int chunkYLength, int[][] heights) {
 
 		baseX = 0;
 		baseY = 0;
 		fullMapCanvas = new DisplayCanvas(chunkXLength * Options.mapRegionSize.get(), chunkYLength * Options.mapRegionSize.get(), false);
 		chunks.clear();
-
+		
 		gameImageBuffer.initializeRasterizer();
 		gameImageBuffer.clear(0);
-		TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(),
+		TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(), 
 				"Loading map, this may take a few seconds...", gameCanvas.getWidth() / 2, gameCanvas.getHeight() / 2 - 20, 0xFFFFFF);
 		// frameFont.renderCentre(256, 150, "Loading - please wait.", 0xffffff);
 		gameImageBuffer.finalize();
@@ -693,10 +731,10 @@ public final class Client implements Runnable {
 					chunk.offsetX = 64 * chunkX;
 					chunk.offsetY = 64 * chunkY;
 					chunk.setNewMap(true);
-
+					
 					chunk.tileMapId = fileId++;
 					chunk.objectMapId = fileId++;
-
+					
 					chunk.fillNamesFromIds();
 
 					chunk.init(this);
@@ -716,7 +754,7 @@ public final class Client implements Runnable {
 		loadState = LoadState.LOADING_MAP;
 		loadingStartTime = System.currentTimeMillis();
 	}
-
+	
 
 	public final void loadChunks(List<Chunk> chunks) {
 		this.chunks.clear();
@@ -725,7 +763,7 @@ public final class Client implements Runnable {
 		baseY = 0;
 		gameImageBuffer.initializeRasterizer();
 		gameImageBuffer.clear(0);
-		TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(),
+		TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(), 
 				"Loading map, this may take a few seconds...", gameCanvas.getWidth() / 2, gameCanvas.getHeight() / 2 - 20, 0xFFFFFF);
 		// frameFont.renderCentre(256, 150, "Loading - please wait.", 0xffffff);
 		gameImageBuffer.finalize();
@@ -737,13 +775,13 @@ public final class Client implements Runnable {
 		for(Chunk chunk : chunks) {
 			int chunkX = chunk.offsetX / 64;
 			int chunkY = chunk.offsetY / 64;
-
+			
 			if(chunkX > chunkXLength)
 				chunkXLength = chunkX;
 			if(chunkY > chunkYLength)
 				chunkYLength = chunkY;
-
-
+			
+			
 		}
 		chunkXLength += 1;
 		chunkYLength += 1;
@@ -777,7 +815,7 @@ public final class Client implements Runnable {
 		baseY = 0;
 		gameImageBuffer.initializeRasterizer();
 		gameImageBuffer.clear(0);
-		TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(),
+		TextRenderUtils.renderCenter(gameImageBuffer.getGraphics(), 
 				"Loading map, this may take a few seconds...", gameCanvas.getWidth() / 2, gameCanvas.getHeight() / 2 - 20, 0xFFFFFF);
 		// frameFont.renderCentre(256, 150, "Loading - please wait.", 0xffffff);
 		gameImageBuffer.finalize();
@@ -808,7 +846,7 @@ public final class Client implements Runnable {
 					// Each -6 is -0.5 in loop, for a total of +1 loop
 					chunk.tileMapId = 0;
 					chunk.objectMapId = 1;
-
+					
 					chunk.tileMapData = landscapeBytes;
 					chunk.objectMapData = objectBytes;
 
@@ -830,7 +868,7 @@ public final class Client implements Runnable {
 	}
 
 	public final void loadNextRegion() {
-		try {
+		try { 
 		if (loadState == LoadState.LOADING_MAP) {
 			boolean j = method54();
 			if (!j && System.currentTimeMillis() - loadingStartTime > 0x57e40) {
@@ -841,12 +879,12 @@ public final class Client implements Runnable {
 		} catch(Exception ex) {
 			ex.printStackTrace();
 			this.chunks.clear();
-
+		
 			loadState = LoadState.ERROR;
-
+		
 		}
 		if (loadState == LoadState.ACTIVE && plane != anInt985) {
-
+			
 			anInt985 = plane;
 			gameImageBuffer.initializeRasterizer();
 		}
@@ -856,21 +894,21 @@ public final class Client implements Runnable {
 		loadState = LoadState.WAITING_INPUT;
 
 	}
-
+	
 	public void scrollOut() {
 		keyStatuses['s'] = 1;
 		timedConsumers.put(client -> {
 			client.keyStatuses['s'] = 0;
 		}, System.currentTimeMillis() + 120);
 	}
-
+	
 	public void scrollIn() {
 		keyStatuses['w'] = 1;
 		timedConsumers.put(client -> {
 			client.keyStatuses['w'] = 0;
 		}, System.currentTimeMillis() + 120);
 	}
-
+	
 	public final void handleKeyInputs(int speedMultiplier) {
 		try {
 			int j = 0 + anInt1278;
@@ -888,7 +926,7 @@ public final class Client implements Runnable {
 			if (anInt1015 != k) {
 				anInt1015 += (k - anInt1015) / 16;
 			}
-
+			
 
 			if (keyStatuses['w'] == 1) {
 				xCameraPos -= Constants.SINE[xCameraCurve] >> speedMultiplier;
@@ -910,7 +948,7 @@ public final class Client implements Runnable {
 				}
 
 				this.cameraMoved = true;
-			}
+			} 
 
 			if (keyStatuses['a'] == 1) {
 				xCameraPos -= Constants.SINE[xCameraCurve + 512 & 0x7ff] >> speedMultiplier;
@@ -939,7 +977,7 @@ public final class Client implements Runnable {
 				yCameraPos += Constants.COSINE[xCameraCurve] >> speedMultiplier;
 				this.cameraMoved = true;
 			}
-
+			
 			if (keyStatuses[1] == 1) {
 				cameraRotationX += (-24 - cameraRotationX) / 2;
 			} else if (keyStatuses[2] == 1) {
@@ -955,19 +993,19 @@ public final class Client implements Runnable {
 			} else {
 				cameraRotationZ /= 2;
 			}
-
+			
 			cameraYaw = cameraYaw + cameraRotationX / 2 & 0x7ff;
-
+			
 			cameraRoll += cameraRotationZ / 2;
-
+			
 			if (cameraRoll < -110) {
 				cameraRoll = -110;
 			}
 			if (cameraRoll > 383) {
 				cameraRoll = 383;
 			}
-
-
+			
+		
 			int j2 = 0 ;
 			if (j2 > 0x17f00) {
 				j2 = 0x17f00;
@@ -1113,10 +1151,10 @@ public final class Client implements Runnable {
 			}*/
 			int k = cameraYaw + anInt896 & 0x7ff;
 			method144(600 + i * 3, i, k);
-
+		
 
 		int currentPlane = method120();
-
+	
 
 /*		int l = xCameraPos;
 		int i1 = zCameraPos;
@@ -1156,7 +1194,7 @@ public final class Client implements Runnable {
 			hoveredUID = Mesh.resourceIDTag[Mesh.resourceCount - 1];
 		else
 			hoveredUID = null;
-
+		
 		for (Runnable r : Lists.newArrayList(SceneGraph.onCycleEnd)) {
 			if(r != null) {
 				try {
@@ -1176,7 +1214,7 @@ public final class Client implements Runnable {
 		yCameraCurve = k1;
 		xCameraCurve = l1;*/
 	}
-
+	
 	public void drawGameImage() {
 		gameImageBuffer.finalize();
 		WritableImage finalImg = gameImageBuffer.finalImage;
@@ -1184,39 +1222,39 @@ public final class Client implements Runnable {
 			drawImage(finalImg);
 		});
 	}
-
+	
 	public void drawImage(WritableImage finalImg) {
 		gameCanvas.drawImage(finalImg, 0, 0);
 	}
-
+	
 	public void saveMinimapImage(File file) throws Exception {
 		final Chunk chunk = this.getCurrentChunk();
 		ImageIO.write(chunk.minimapImageBuffer.getImage(), "png", file);
 	}
-
+	
 	public void saveMapFullImage(File file) throws Exception {
-
-
+		
+		
 		ImageIO.write(SwingFXUtils.fromFXImage(fullMapCanvas.trimmedSnapshot(), null), "png", file);
 	}
-
+	
 	public void drawMinimapImage() {
 		final Chunk chunk = this.getCurrentChunk();
 		chunk.minimapImageBuffer.finalize();
 		Platform.runLater(() -> {
 				mapCanvas.drawImage(chunk.minimapImageBuffer.getFXImage(), 0, 0);
-
+	
 		});
 	}
-
+	
 	/*public void saveFullMapImage(File file) throws Exception {
 		final Chunk chunk = this.getCurrentChunk();
 		ImageIO.write(fullMapCanvas.getGraphics()., "png", file);
 	}
 	*/
-
-
-
+	
+	
+	
 	public SimpleBooleanProperty fullMapVisible = new SimpleBooleanProperty();
 
 	public void drawMinimapFullImage() {
@@ -1243,7 +1281,7 @@ public final class Client implements Runnable {
 						fullMapCanvas.getGraphicsContext2D().setStroke(Color.RED);
 						fullMapCanvas.getGraphicsContext2D().strokeRect(xPos, yPos, Options.mapRegionSize.get(), Options.mapRegionSize.get());
 					}
-
+					
 					if(Options.showMapFileNames.get()) {
 						fullMapCanvas.getGraphicsContext2D().setStroke(Color.BLACK);
 
@@ -1282,11 +1320,11 @@ public final class Client implements Runnable {
 	public final void loadChunks() {
 		anInt985 = -1;
 		unlinkCaches();
-
+		
 		SceneGraph.clearStates();
 		sceneGraph.reset();
 
-
+	
 		for (Chunk chunk : chunks) {
 			try {
 				chunk.loadChunk();
@@ -1300,12 +1338,12 @@ public final class Client implements Runnable {
 		for(int z = 0;z<4;z++)
 			sceneGraph.fill(z);
 		SceneGraph.activePlane = 0;
-
+		
 		//ObjectDefinition.baseModels.clear();
-
+		
 
 	}
-
+	
 	public final void method51() {
 
 		if (!aBoolean831) {
@@ -1352,18 +1390,18 @@ public final class Client implements Runnable {
 		byte[] unzipped;
 		try {
 				unzipped = GZIPUtils.unzip(response.getData());
-
+			
 			if(unzipped == null) {
 				unzipped = response.getData();
 			}
-
+			
 			CacheFileType type = response.getRequest().getType();
 			int file = response.getRequest().getFile();
-
+			
 			//System.out.println("UNZIPPED " + type + ":" + file + " ATTEMPTING TO DELIVER");
 			lastDeliveredResource.set(response);
 			ClientPluginLoader.forEach(plugin -> plugin.onResourceDelivered(response));
-
+			
 			if (type == CacheFileType.ANIMATION) {//TODO Fix animations
 				if(Options.loadAnimations.get())
 					try {
@@ -1396,9 +1434,9 @@ public final class Client implements Runnable {
 			runLater.clear();
 
 		}
-
+		
 	}
-
+	
 	private List<Chunk> pendingChunks = Lists.newArrayList();
 
 	public Vector2 getScreenPos(int worldX, int worldY, int height){
@@ -1481,8 +1519,8 @@ public final class Client implements Runnable {
 		for (Chunk chunk : chunks) {
 			chunk.method115();
 		}
-
-
+		
+	
 
 		tickDelta++;
 		if (anInt917 != 0) {
@@ -1492,10 +1530,10 @@ public final class Client implements Runnable {
 			}
 		}
 
-
-
-
-
+		
+	
+		
+	
 		for (Entry<Consumer<Client>, Long> entry : Lists.newArrayList(timedConsumers.entrySet())) {
 			if(System.currentTimeMillis() >= entry.getValue()) {
 				if(entry.getKey() != null) {
@@ -1508,25 +1546,31 @@ public final class Client implements Runnable {
 		if (timeoutCounter > 3000) {
 			//
 
-
+			
 			timeoutCounter = 0;
 		}
 	}
 
 	public final void shutdown() {
 		try {
-			cache.close();
+			if (cache != null) cache.close();
+
+			reset();
+
 			singleton = null;
 			mapScenes = null;
 			mapFunctions = null;
-			reset();
 			hoveredUID = null;
-			gameLoaded.set(false);
-			runLater.clear();
+
+			if (gameLoaded != null) gameLoaded.set(false);
+			if (runLater != null) runLater.clear();
+
 			method118();
-			MeshLoader.getSingleton().dispose();
+
+			MeshLoader loader = MeshLoader.getSingleton();
+			if (loader != null) loader.dispose();
+
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -1570,7 +1614,7 @@ public final class Client implements Runnable {
 				System.out.println("UPDATED TILES");
 		});
 	}
-
+	
 	public DisplayCanvas gameCanvas;
 	public boolean debug = false;
 	public int fps;
@@ -1632,7 +1676,7 @@ public final class Client implements Runnable {
 		graphics.setFont(jetBrainsMono);
 		graphics.setColor(java.awt.Color.white);
 		graphics.drawString(string, (canvasWidth - font.stringWidth(string)) / 2, y + 22);
-
+		
 		gameImageBuffer.finalize();
 		drawGameImage();
 	}
@@ -1640,7 +1684,7 @@ public final class Client implements Runnable {
 	public final void exit() {
 		state = -2;
 		shutdown();
-
+		
 	}
 
 	public int getCanvasHeight() {
@@ -1753,7 +1797,7 @@ public final class Client implements Runnable {
 		if (loadState == LoadState.ACTIVE) {
 			int speedMultiplier = KeyboardState.isKeyPressed(KeyCode.SHIFT) ? 10 : KeyboardState.isKeyPressed(KeyCode.CONTROL) ? 12 : 11;
 			handleKeyInputs(speedMultiplier);
-
+			
 
 		}
 		try {
@@ -1853,7 +1897,7 @@ public final class Client implements Runnable {
 				exceptions++;
 			}
 
-			for (; cycle < 256; cycle += ratio) {
+			//for (; cycle < 256; cycle += ratio) {
 				lastMetaModifier = metaModifierPressed;
 				lastClickX = pressedX;
 				lastClickY = pressedY;
@@ -1861,7 +1905,7 @@ public final class Client implements Runnable {
 				metaModifierPressed = 0;
 				pulse();
 				lastProcessedKey = unprocessedKeyCount;
-			}
+			//}
 
 			cycle &= 0xff;
 			if (timeDelta > 0) {

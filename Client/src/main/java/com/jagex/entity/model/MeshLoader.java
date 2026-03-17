@@ -52,11 +52,12 @@ public class MeshLoader {
 	public static Mesh load(byte[] data) {
 		MeshRevision revision = MeshUtils.getRevision(data);
 		switch (revision) {
-            case REVISION_530:
-				return new Mesh530(data);
+			case REVISION_525:
+				return new Mesh525(data);
+			case REVISION_742:
+				return new Mesh742(data);
 			case REVISION_622:
 				return new Mesh622(data);
-			//return new Mesh622(data);
 			case REVISION_317:
 			default:
 				return new Mesh317(data);
@@ -70,15 +71,15 @@ public class MeshLoader {
 		Mesh mesh = null;
 		try {
 			switch (revision) {
+				case REVISION_742:
+					mesh = new Mesh742(data);
+					break;
 				case REVISION_622:
 					mesh = new Mesh622(data);
 					break;
-				case REVISION_530:
-					mesh = new Mesh530(data);
+				case REVISION_525:
+					mesh = new Mesh525(data);
 					break;
-				//mesh = new Mesh622(data);
-				//	break;
-
 				default:
 				case REVISION_317:
 					mesh = new Mesh317(data);
@@ -86,14 +87,17 @@ public class MeshLoader {
 
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			log.error("Failed decoding model {} ({})", id, revision, ex);
 		}
-		mesh.id = id;
-		mesh.revision = revision;
-
-		loadedMeshes.put(id, mesh);
 
 		awaitingLoad.remove(Integer.valueOf(id));
+		if (mesh == null) {
+			return null;
+		}
+
+		mesh.id = id;
+		mesh.revision = revision;
+		loadedMeshes.put(id, mesh);
 
 		return mesh;
 	}
@@ -105,7 +109,9 @@ public class MeshLoader {
 		boolean alreadyLoading = awaitingLoad.contains(id);
 		if (!alreadyLoading) {
 			awaitingLoad.add(id);
-			System.out.println("Requested model " + id);
+			if (log.isTraceEnabled()) {
+				log.trace("Requested model {}", id);
+			}
 			provider.requestFile(CacheFileType.MODEL, id);
 			return false;
 		}

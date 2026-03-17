@@ -302,12 +302,10 @@ public class MainWindow extends Application {
 			Options.renderDistance.set(renderDistance);
 
 			boolean loadAutosave = false;
-			File autosavePath = Paths.get("References/cache/", ".rspsi", "autosave").toFile();
+			File autosavePath = Paths.get("../", ".rspsi", "autosave").toFile();
 
 			String lastCacheLoc = Settings.getSetting("lastCacheLocation", "");
 			if(!shutdownCorrectly) {
-				System.out.println("CRASH DETECTED!");
-
 				if(autosavePath.exists() && autosavePath.list().length > 0) {
 
 					//Just incase there was a crash mid autosave
@@ -333,7 +331,7 @@ public class MainWindow extends Application {
 			MapView mapView = new MapView();
 
 			selectXTEA = new SelectXTEAWindow();
-			selectXTEA.start(new Stage());
+			selectXTEA.setLocation(Settings.getSetting("xteaLoc", ""));
 
 			TileExportDialog export = new TileExportDialog();
 			export.start(new Stage());
