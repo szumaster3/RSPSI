@@ -263,20 +263,20 @@ public class MainController {
 
 	@FXML
 	private JFXCheckBox forceLowestCheck;
-	
+
 	@FXML
 	private JFXCheckBox disableRenderCheck;
 
 	@FXML
 	private JFXCheckBox drawOnLowerZCheck;
-	
+
 
 	@FXML
 	private JFXCheckBox absoluteHeightCheck;
 
 	@FXML
 	private ToggleButton setFlagBtn;
-	
+
     @FXML
     private ToggleButton paintOverlayBtn;
 
@@ -402,7 +402,7 @@ public class MainController {
 		ChangeListenerUtil.addListener(true, () -> {
 			Options.currentTool.set(ToolType.SET_FLAGS);
 		}, setFlagBtn.selectedProperty());
-		
+
 
 	}
 

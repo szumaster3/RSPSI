@@ -7,7 +7,7 @@ import com.jagex.io.Buffer;
 import com.jagex.util.ColourUtils;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
-import org.displee.cache.index.archive.Archive;
+import com.displee.cache.index.archive.Archive;
 
 import javax.swing.*;
 import java.awt.*;

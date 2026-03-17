@@ -4,8 +4,7 @@ import com.jagex.map.SceneGraph;
 import com.jagex.map.tile.SceneTile;
 import com.rspsi.options.KeyboardState;
 import javafx.scene.input.KeyCode;
-import org.displee.cache.index.archive.Archive;
-import org.displee.utilities.GZIPUtils;
+import com.displee.cache.index.archive.Archive;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

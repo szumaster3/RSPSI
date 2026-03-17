@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation project(':Client')
+    implementation 'com.displee:rs-cache-library:6.8'
     implementation 'org.controlsfx:controlsfx:11.1.0'
     implementation 'com.jfoenix:jfoenix:9.0.10'
 }
