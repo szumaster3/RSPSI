@@ -96,14 +96,15 @@ public class LauncherWindow extends Application {
 		});
 		
 		controller.getCancelButton().setOnAction(evt -> primaryStage.hide());
-		
+
 		controller.getEnablePluginButton().setOnAction(evt -> {
 			String pluginName = controller.getDisabledPlugins().getFocusModel().getFocusedItem();
 			if(pluginName != null) {
 
 				File inactiveFolder = new File(PLUGINS_PATH + "inactive" + File.separator);
 				File activeFolder = new File(PLUGINS_PATH + "active" + File.separator);
-
+				inactiveFolder.mkdirs();
+				activeFolder.mkdirs();
 				File oldPluginFile = new File(inactiveFolder,  pluginName + ".jar");
 				File newPluginFile = new File(activeFolder, pluginName + ".jar");
 				try {
