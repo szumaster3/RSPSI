@@ -1,4 +1,4 @@
-package org.displee.util;
+package com.displee.util;
 
 import com.displee.io.impl.InputBuffer;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;

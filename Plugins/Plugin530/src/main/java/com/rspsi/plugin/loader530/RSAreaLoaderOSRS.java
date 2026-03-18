@@ -4,19 +4,29 @@ import com.jagex.cache.def.RSArea;
 import com.jagex.cache.loader.config.RSAreaLoader;
 import com.jagex.io.Buffer;
 import com.jagex.util.ByteBufferUtils;
-import org.displee.cache.index.archive.Archive;
-import org.displee.cache.index.archive.file.File;
+import com.displee.cache.CacheLibrary;
+import com.displee.cache.index.archive.Archive;
 
 import java.nio.ByteBuffer;
-import java.util.stream.IntStream;
 
 public class RSAreaLoaderOSRS extends RSAreaLoader {
 
 	private RSArea[] areas;
+
+	private CacheLibrary cacheLibrary;
+	private int indexId = 16;
+	private int archiveId = 0;
+
+	public RSAreaLoaderOSRS() {
+	}
+
+	public void setCacheLibrary(CacheLibrary cacheLibrary) {
+		this.cacheLibrary = cacheLibrary;
+	}
+
 	@Override
 	public RSArea forId(int id) {
-		if(id < 0 || id >= areas.length)
-			return null;
+		if (id < 0 || id >= areas.length) return null;
 		return areas[id];
 	}
 
@@ -27,30 +37,37 @@ public class RSAreaLoaderOSRS extends RSAreaLoader {
 
 	@Override
 	public void init(Archive archive) {
-		if(archive == null){
+		if (cacheLibrary == null || archive == null) {
 			areas = new RSArea[1000];
-			IntStream.range(0, areas.length).forEach(index -> {
-				RSArea dummyArea = new RSArea(index);
-				dummyArea.setSpriteId(index);
-				areas[index] = dummyArea;
-			});
+			for (int i = 0; i < areas.length; i++) {
+				RSArea dummy = new RSArea(i);
+				dummy.setSpriteId(i);
+				areas[i] = dummy;
+			}
 			return;
 		}
-		areas = new RSArea[archive.getHighestId() + 1];
-		for(File file : archive.getFiles()) {
-			if(file != null && file.getData() != null) {
-				RSArea area = decode(file.getId(), ByteBuffer.wrap(file.getData()));
-				areas[file.getId()] = area;
+
+		areas = new RSArea[256];
+
+		for (int fileId = 0; fileId < 256; fileId++) {
+			try {
+				byte[] data = cacheLibrary.data(indexId, archiveId, fileId, null);
+				if (data != null && data.length > 0) {
+					RSArea area = decode(fileId, ByteBuffer.wrap(data));
+					areas[fileId] = area;
+				}
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 		}
 	}
 
 	private RSArea decode(int id, ByteBuffer buffer) {
 		RSArea area = new RSArea(id);
+
 		while (true) {
 			int opcode = buffer.get() & 0xFF;
-			if (opcode == 0)
-				break;
+			if (opcode == 0) break;
 
 			if (opcode == 1) {
 				area.setSpriteId(ByteBufferUtils.getSmartInt(buffer));
@@ -66,35 +83,22 @@ public class RSAreaLoaderOSRS extends RSAreaLoader {
 				area.setAnInt1968(buffer.get() & 0xFF);
 			} else if (opcode == 7) {
 				int flags = buffer.get() & 0xFF;
-				if ((flags & 0x1) == 0) {
-				}
-				if ((flags & 0x2) == 2) {
-				}
-			} else if (opcode == 8) {
+				if ((flags & 0x1) == 0) {}
+				if ((flags & 0x2) == 2) {}
+			} else if (opcode == 8 || opcode == 28 || opcode == 29 || opcode == 30) {
 				buffer.get();
 			} else if (opcode >= 10 && opcode <= 14) {
 				area.getAStringArray1969()[opcode - 10] = ByteBufferUtils.getOSRSString(buffer);
 			} else if (opcode == 15) {
 				int size = buffer.get() & 0xFF;
 				int[] anIntArray1982 = new int[size * 2];
-
-				for (int i = 0; i < size * 2; ++i) {
-					anIntArray1982[i] = buffer.getShort();
-				}
-
+				for (int i = 0; i < size * 2; i++) anIntArray1982[i] = buffer.getShort();
 				buffer.getInt();
 				int size2 = buffer.get() & 0xFF;
 				int[] anIntArray1981 = new int[size2];
-
-				for (int i = 0; i < anIntArray1981.length; ++i) {
-					anIntArray1981[i] = buffer.getInt();
-				}
-
+				for (int i = 0; i < size2; i++) anIntArray1981[i] = buffer.getInt();
 				byte[] aByteArray1979 = new byte[size];
-
-				for (int i = 0; i < size; ++i) {
-					aByteArray1979[i] = buffer.get();
-				}
+				for (int i = 0; i < size; i++) aByteArray1979[i] = buffer.get();
 				area.setAnIntArray1982(anIntArray1982);
 				area.setAnIntArray1981(anIntArray1981);
 				area.setAByteArray1979(aByteArray1979);
@@ -130,8 +134,5 @@ public class RSAreaLoaderOSRS extends RSAreaLoader {
 
 	@Override
 	public void init(Buffer data, Buffer indexBuffer) {
-		// TODO Auto-generated method stub
-
 	}
-
 }

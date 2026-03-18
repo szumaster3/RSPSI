@@ -402,8 +402,6 @@ public class MainController {
 		ChangeListenerUtil.addListener(true, () -> {
 			Options.currentTool.set(ToolType.SET_FLAGS);
 		}, setFlagBtn.selectedProperty());
-
-
 	}
 
 	public void loadTabs(MainWindow application) {

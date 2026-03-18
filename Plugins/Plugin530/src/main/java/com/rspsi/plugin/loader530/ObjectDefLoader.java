@@ -1,6 +1,8 @@
 package com.rspsi.plugin.loader530;
 
 
+import com.displee.cache.index.Index;
+import com.displee.cache.index.archive.Archive;
 import com.google.common.collect.Maps;
 import com.jagex.Client;
 import com.jagex.cache.config.VariableBits;
@@ -10,10 +12,11 @@ import com.jagex.cache.loader.object.ObjectDefinitionLoader;
 import com.jagex.io.Buffer;
 import com.jagex.util.ByteBufferUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.displee.cache.index.Index;
-import org.displee.cache.index.archive.Archive;
-import org.displee.cache.index.archive.file.File;
-import org.displee.utilities.Miscellaneous;
+import com.displee.cache.index.Index;
+import com.displee.cache.index.archive.Archive;
+import com.displee.cache.index.archive.file.File;
+import org.displee.util.Miscellaneous;
+
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -40,14 +43,26 @@ public class ObjectDefLoader extends ObjectDefinitionLoader {
 	private int size;
 
 	public void decodeObjects(Index index) {
-		size = index.getLastArchive().getId() * 256 + index.getLastArchive().getLastFile().getId();
+		Archive lastArchive = index.last();
+		if (lastArchive == null) {
+			return;
+		}
+
+		int lastFileId = 0;
+		com.displee.cache.index.archive.file.File lastFile = lastArchive.last();
+		if (lastFile != null) {
+			lastFileId = lastFile.getId();
+		}
+		int size = lastArchive.getId() * 256 + lastFileId + 1;
+
 		for (int id = 0; id < size; id++) {
 			int archiveId = Miscellaneous.getConfigArchive(id, 8);
-			Archive archive = index.getArchive(archiveId);
-			if (Objects.nonNull(archive)) {
-				int fileId = Miscellaneous.getConfigFile(id, 8);
-				File file = archive.getFile(fileId);
-				if (Objects.nonNull(file) && Objects.nonNull(file.getData())) {
+			int fileId = Miscellaneous.getConfigFile(id, 8);
+
+			Archive archive = index.archive(archiveId);
+			if (archive != null) {
+				com.displee.cache.index.archive.file.File file = archive.file(fileId);
+				if (file != null && file.getData() != null) {
 					try {
 						ObjectDefinition def = decode(id, ByteBuffer.wrap(file.getData()));
 						definitions.put(id, def);
@@ -294,7 +309,7 @@ public class ObjectDefLoader extends ObjectDefinitionLoader {
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			log.info("Last succesful opcode: " + lastOpcode);
+			log.info("Last successful opcode: " + lastOpcode);
 		}
 
 		if (definition.isHollow()) {

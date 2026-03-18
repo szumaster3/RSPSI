@@ -3,8 +3,7 @@
  * Original modena.css here: https://gist.github.com/maxd/63691840fc372f22f470.
  */
  @font-face {
-    font-family: 'JetBrains Mono';
-    src: url('../font/JetBrainsMono-Regular.ttf');
+    font-family: 'Verdana';
 }
 /* Redefine base colors */
 .root {
@@ -12,7 +11,7 @@
     -fx-background: rgb(50, 50, 50);
     
 
-    -fx-font-family: 'JetBrains Mono' !important;
+    -fx-font-family: 'Verdana' !important;
     -fx-font-size: 11px;
 
     /* make controls (buttons, thumb, etc.) slightly lighter */

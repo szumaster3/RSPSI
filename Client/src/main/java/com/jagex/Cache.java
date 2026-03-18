@@ -1,249 +1,172 @@
 package com.jagex;
 
+import com.displee.cache.CacheLibrary;
+import com.displee.cache.index.Index;
+import com.displee.cache.index.archive.Archive;
+import com.displee.cache.index.archive.file.File;
+import lombok.Getter;
 import lombok.Setter;
-import org.displee.CacheLibrary;
-import org.displee.cache.index.Index;
-import org.displee.cache.index.archive.Archive;
-import org.displee.cache.index.archive.file.File;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.BiFunction;
-
-import javax.annotation.Nullable;
 
 import com.jagex.cache.graphics.Sprite;
 import com.jagex.net.ResourceProvider;
 import com.rspsi.cache.CacheFileType;
 import com.rspsi.misc.FixedIntegerKeyMap;
 import com.rspsi.misc.XTEAManager;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.displee.utilities.Miscellaneous;
+import org.displee.util.Miscellaneous;
 
 @Slf4j
 public class Cache {
 
-
 	@Setter
-	/**
-	 * Set this to override how all cache files except maps are loaded
-	 * args = [fileType, fileId]
-	 * return byte[] or Optional.empty() to continue with normal loading
-	 */
 	private BiFunction<CacheFileType, Integer, Optional<byte[]>> fileRetrieverOverride;
 
 	@Setter
-	/**
-	 * Set this to override how the map files are loaded
-	 * args = [fileId, regionId]
-	 * return byte[] or Optional.empty() to continue with normal loading
-	 */
 	private BiFunction<Integer, Integer, Optional<byte[]>> mapRetrieverOverride;
-	
 
 	@Getter
-	private CacheLibrary indexedFileSystem;
+	private final CacheLibrary cacheLibrary;
 
-	private Index modelArchive, mapArchive, configArchive, skeletonArchive, skinArchive, spriteIndex, textureIndex, spotAnimIndex, varbitIndex, locIndex;
+	private final Index modelArchive, mapArchive, configArchive, skeletonArchive, skinArchive,
+			spriteIndex, textureIndex, spotAnimIndex, varbitIndex, locIndex;
 
-	public Cache(Path path) throws IOException {
-			log.info("Loading cache at {}", path);
-			indexedFileSystem = new CacheLibrary(path);
-			if(indexedFileSystem.is317()){
-				modelArchive = indexedFileSystem.getIndex(1);
-				mapArchive = indexedFileSystem.getIndex(4);
-				configArchive = indexedFileSystem.getIndex(0);
-				skinArchive= indexedFileSystem.getIndex(2);
-				skeletonArchive = null;//317 loads inside skins
-				log.info("Loaded cache in 317 format!");
-			} else if(indexedFileSystem.isOSRS()){
-				modelArchive = indexedFileSystem.getIndex(7);
-				mapArchive = indexedFileSystem.getIndex(5);
-				configArchive = indexedFileSystem.getIndex(2);
-				skeletonArchive = indexedFileSystem.getIndex(0);
-				skinArchive = indexedFileSystem.getIndex(1);
-				spriteIndex = indexedFileSystem.getIndex(8);
-				textureIndex = indexedFileSystem.getIndex(9);
-				log.info("Loaded cache in OSRS format!");
-			} else if(indexedFileSystem.isRS2()){
-				modelArchive = indexedFileSystem.getIndex(7);
-				mapArchive = indexedFileSystem.getIndex(5);
-				configArchive = indexedFileSystem.getIndex(2);
-				skeletonArchive = indexedFileSystem.getIndex(0);
-				skinArchive = indexedFileSystem.getIndex(1);
-				spriteIndex = indexedFileSystem.getIndex(8);
-				textureIndex = indexedFileSystem.getIndex(9);
-				spotAnimIndex = indexedFileSystem.getIndex(21);
-				varbitIndex = indexedFileSystem.getIndex(22);
-				locIndex = indexedFileSystem.getIndex(16);
-				log.info("Loaded cache in RS3 format!");
-			} else if(indexedFileSystem.isRS3()){
-				throw new UnsupportedOperationException("RS3 Cache not supported!");
-			}
-			resourceProvider = new ResourceProvider(this);
-			Thread t = new Thread(resourceProvider);
-			t.start();
-	}
-	
 	public ResourceProvider resourceProvider;
-	
 
-	private FixedIntegerKeyMap<Sprite> spriteCache = new FixedIntegerKeyMap<Sprite>(100);
-	
-	
+	private final FixedIntegerKeyMap<Sprite> spriteCache = new FixedIntegerKeyMap<>(100);
+
+	public Cache(String path) throws IOException {
+		log.info("Loading cache at {}", path);
+		cacheLibrary = CacheLibrary.create(path, true, null);
+
+		modelArchive = cacheLibrary.index(7);
+		mapArchive = cacheLibrary.index(5);
+		configArchive = cacheLibrary.index(2);
+		skeletonArchive = cacheLibrary.index(0);
+		skinArchive = cacheLibrary.index(1);
+		spriteIndex = cacheLibrary.index(8);
+		textureIndex = cacheLibrary.index(9);
+		locIndex = cacheLibrary.index(16);
+		spotAnimIndex = cacheLibrary.index(21);
+		varbitIndex = cacheLibrary.index(22);
+
+		log.info("Loaded cache in fat cunt format!");
+
+		resourceProvider = new ResourceProvider(this);
+		Thread t = new Thread(resourceProvider);
+		t.start();
+	}
+
 	public Sprite getSprite(int id) {
-		if (id < 0) {
-			return null;
-		}
-		if(spriteCache.contains(id))
-			return spriteCache.get(id);
-		if (indexedFileSystem.is317() || spriteIndex == null) {
-			return null;
-		}
-		Archive archive = spriteIndex.getArchive(id);
-		if (archive == null) {
-			return null;
-		}
+		if (id < 0) return null;
+		if (spriteCache.contains(id)) return spriteCache.get(id);
+		if (spriteIndex == null) return null;
+
+		Archive archive = spriteIndex.archive(id);
+		if (archive == null) return null;
+
 		try {
-			byte[] data = archive.readFile(0);
-			if (data == null) {
-				return null;
-			}
+			byte[] data = archive.file(0).getData();
+			if (data == null) return null;
 			Sprite sprite = Sprite.decode(ByteBuffer.wrap(data));
-			if (sprite == null) {
-				return null;
-			}
-			spriteCache.put(id, sprite);
+			if (sprite != null) spriteCache.put(id, sprite);
 			return sprite;
 		} catch (Exception ex) {
 			log.debug("Failed to decode sprite {}", id, ex);
 		}
 		return null;
 	}
-	public final Index readFile(CacheFileType index){
-		try {
-			switch(index){
-				case CONFIG:
-					return configArchive;
-				case MODEL:
-					return modelArchive;
-				case ANIMATION:
-					return skinArchive;
-				case SKELETON:
-					return skeletonArchive;
-				case SOUND:
-					break;
-				case MAP:
-					return mapArchive;
-				case SPRITE:
-					return spriteIndex;
-				case TEXTURE:
-					return textureIndex;
-				case SPOT:
-					return spotAnimIndex;
-				case VARBIT:
-					return varbitIndex;
-				case LOC:
-					return locIndex;
-			}
-		} catch(Exception ex) {
-			ex.printStackTrace();
+
+	public Index readFile(CacheFileType type) {
+		switch (type) {
+			case CONFIG: return configArchive;
+			case MODEL: return modelArchive;
+			case ANIMATION: return skinArchive;
+			case SKELETON: return skeletonArchive;
+			case MAP: return mapArchive;
+			case SPRITE: return spriteIndex;
+			case TEXTURE: return textureIndex;
+			case SPOT: return spotAnimIndex;
+			case VARBIT: return varbitIndex;
+			case LOC: return locIndex;
+			default: return null;
 		}
-		return null;
 	}
-	
-	public final byte[] readMap(int fileId, int regionId) {
-		if(mapRetrieverOverride != null){
+
+	public byte[] readMap(int fileId, int regionId) {
+		if (mapRetrieverOverride != null) {
 			Optional<byte[]> data = mapRetrieverOverride.apply(fileId, regionId);
-			if(data.isPresent())
-				return data.get();
+			if (data.isPresent()) return data.get();
 		}
-		if(indexedFileSystem.is317())
-			return mapArchive.getArchive(fileId).readFile(0);
-		return mapArchive.getArchive(fileId, XTEAManager.lookupMap(regionId)).readFile(0);
-	}
-	
-	public final byte[] readFile(CacheFileType type, int file){
+
 		try {
-			if(fileRetrieverOverride != null){
-				Optional<byte[]> data = fileRetrieverOverride.apply(type, file);
-				if(data.isPresent())
-					return data.get();
-			}
-			switch(type){
-				case CONFIG:
-					return configArchive.getArchive(file).readFile(0);
-				case MODEL:
-					return modelArchive.getArchive(file).readFile(0);
-				case ANIMATION:
-					return skinArchive.getArchive(file).readFile(0);
-				case SKELETON:
-					return skeletonArchive.getArchive(file).readFile(0);
-				case SOUND:
-					break;
-				case MAP:
-					return mapArchive.getArchive(file).readFile(0);
-				case TEXTURE:
-					break;
-				case SPOT:
-					return spotAnimIndex.getArchive(file >>> 8).readFile(file & 0xff);
-				case VARBIT:
-					return varbitIndex.getArchive(file >>> 1416501898).readFile(file & 0x3ffff);
-				case LOC:
-					return locIndex.getArchive(Miscellaneous.getConfigArchive(file, 8)).readFile(Miscellaneous.getConfigFile(file, 8));
-			}
-		} catch(Exception ex) {
-			//ex.printStackTrace();
-		}
-		return null;
-	}
-	
-	public final File writeFile(CacheFileType index, String name, int file, byte[] data, int[] xteas){
-		try {
-			switch(index){
-				case CONFIG:
-					configArchive.createIfNotExist(file);
-					return configArchive.getArchive(file).addFileKeepName(0, data);
-				case MODEL:
-					modelArchive.createIfNotExist(file);
-					return modelArchive.getArchive(file).addFileKeepName(0, data);
-				case ANIMATION:
-					skinArchive.createIfNotExist(file);
-					return skinArchive.getArchive(file).addFileKeepName(0, data);
-				case SOUND:
-					break;
-				case MAP:
-					mapArchive.createIfNotExist(file);
-					return mapArchive.getArchive(file).addFileKeepName(0, data);
-				case TEXTURE:
-					break;
-				case SPOT:
-					return spotAnimIndex.addArchive(file >>> 8).addFile(file & 0xff, data);
-				case VARBIT:
-					return varbitIndex.addArchive(file >>> 1416501898).addFile(file & 0x3ffff, data);
-				case LOC:
-					return locIndex.addArchive(Miscellaneous.getConfigArchive(file, 8)).addFile(Miscellaneous.getConfigFile(file, 8), data);
-			}
-		} catch(Exception ex) {
+			int[] xtea = XTEAManager.lookupMap(regionId); // int[]
+			return cacheLibrary.data(mapArchive.getId(), fileId, 0, xtea);
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		return null;
 	}
-	public final Archive createArchive(int file, String name) {
-        return configArchive.getArchive(file);
+
+	public byte[] readFile(CacheFileType type, int file) {
+		if (fileRetrieverOverride != null) {
+			Optional<byte[]> data = fileRetrieverOverride.apply(type, file);
+			if (data.isPresent()) return data.get();
+		}
+
+		try {
+			switch (type) {
+				case CONFIG: return cacheLibrary.data(configArchive.getId(), file, 0);
+				case MODEL: return cacheLibrary.data(modelArchive.getId(), file, 0);
+				case ANIMATION: return cacheLibrary.data(skinArchive.getId(), file, 0);
+				case SKELETON: return cacheLibrary.data(skeletonArchive.getId(), file, 0);
+				case MAP: return cacheLibrary.data(mapArchive.getId(), file, 0);
+				case SPOT: return cacheLibrary.data(spotAnimIndex.getId(), file >>> 8, file & 0xFF);
+				case VARBIT: return cacheLibrary.data(varbitIndex.getId(), file >>> 18, file & 0x3FFFF);
+				case LOC:
+					int archive = Miscellaneous.getConfigArchive(file, 8);
+					int subFile = Miscellaneous.getConfigFile(file, 8);
+					return cacheLibrary.data(locIndex.getId(), archive, subFile);
+				default: return null;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
 	}
-	
+
+	public File writeFile(CacheFileType type, String name, int file, byte[] data, int[] xteas) {
+		try {
+			switch (type) {
+				case CONFIG: return cacheLibrary.put(configArchive.getId(), file, 0, data, xteas);
+				case MODEL: return cacheLibrary.put(modelArchive.getId(), file, 0, data, xteas);
+				case ANIMATION: return cacheLibrary.put(skinArchive.getId(), file, 0, data, xteas);
+				case MAP: return cacheLibrary.put(mapArchive.getId(), file, 0, data, xteas);
+				case SPOT: return cacheLibrary.put(spotAnimIndex.getId(), file >>> 8, file & 0xFF, data, xteas);
+				case VARBIT: return cacheLibrary.put(varbitIndex.getId(), file >>> 18, file & 0x3FFFF, data, xteas);
+				case LOC:
+					int archive = Miscellaneous.getConfigArchive(file, 8);
+					int subFile = Miscellaneous.getConfigFile(file, 8);
+					return cacheLibrary.put(locIndex.getId(), archive, subFile, data, xteas);
+				default: return null;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
+	}
+
 	public void close() throws IOException {
-		indexedFileSystem.close();
+		cacheLibrary.close();
 	}
 
 	public ResourceProvider getProvider() {
 		return resourceProvider;
 	}
-	
-
 }

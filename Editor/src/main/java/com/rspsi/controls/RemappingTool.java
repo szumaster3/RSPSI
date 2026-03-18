@@ -1,7 +1,7 @@
 package com.rspsi.controls;
 
 import com.rspsi.util.FXUtils;
-import org.displee.utilities.GZIPUtils;
+import com.displee.util.GZIPUtils;
 
 import java.io.File;
 import java.io.FileReader;

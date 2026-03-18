@@ -71,7 +71,7 @@ import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.displee.util.GZIPUtils;
+import com.displee.util.GZIPUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -234,7 +234,7 @@ public class MainWindow extends Application {
 
 			scene.setFill(Color.TRANSPARENT);
 
-			primaryStage.setTitle("RSPSi Map Editor 1.16.1");
+			primaryStage.setTitle("RSPSi Map Editor 1.16.1a");
 			primaryStage.initStyle(StageStyle.TRANSPARENT);
 			primaryStage.setScene(scene);
 			primaryStage.getIcons().addAll(ResourceLoader.getSingleton().getIcons());
@@ -864,7 +864,7 @@ public class MainWindow extends Application {
 			int landArchive = chunk.tileMapId;
 			int objectArchive = chunk.objectMapId;
 
-			CacheLibrary cache = CacheLibrary.create("path/to/cache");
+			CacheLibrary cache = CacheLibrary.create(Config.cacheLocation.get());
 
 			new Thread(() -> {
 				try {
@@ -991,8 +991,7 @@ public class MainWindow extends Application {
 		controller.getOpenCoordinateButton().setOnAction(evt -> {
 
             PredefiniedLocation predefiniedLocation = new PredefiniedLocation();
-
-            Optional<String> selectedCoords = predefiniedLocation.showLocationDialog();
+			Optional<String> selectedCoords = predefiniedLocation.showLocationDialog(stage);
 
             int hash;
             int y;

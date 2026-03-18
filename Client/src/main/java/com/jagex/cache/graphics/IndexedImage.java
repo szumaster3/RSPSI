@@ -128,11 +128,29 @@ public final class IndexedImage extends GameRaster {
 	}
 
 	public IndexedImage(Archive archive, String name, int id) throws Exception {
-		Buffer image = new Buffer(archive.readFile(name + ".dat"));
-		Buffer meta = new Buffer(archive.readFile("index.dat"));
-		
+		if (archive == null) {
+			throw new Exception("Archive is null");
+		}
+
+		com.displee.cache.index.archive.file.File imageFile = archive.file(name + ".dat");
+		com.displee.cache.index.archive.file.File metaFile = archive.file("index.dat");
+
+		if (imageFile == null || metaFile == null) {
+			throw new Exception("IndexedImage files not found: " + name);
+		}
+
+		byte[] imageData = imageFile.getData();
+		byte[] metaData = metaFile.getData();
+
+		if (imageData == null || metaData == null) {
+			throw new Exception("IndexedImage data is null: " + name);
+		}
+
+		Buffer image = new Buffer(imageData);
+		Buffer meta = new Buffer(metaData);
 
 		meta.setPosition(image.readUShort());
+
 		resizeWidth = meta.readUShort();
 		resizeHeight = meta.readUShort();
 
@@ -140,12 +158,16 @@ public final class IndexedImage extends GameRaster {
 		palette = new int[colours];
 
 		for (int index = 0; index < colours - 1; index++) {
-			palette[index + 1] = meta.readUTriByte();
+			int colour = meta.readUTriByte();
+			if (colour == 0) colour = 1;
+			palette[index + 1] = colour;
 		}
 
 		for (int i = 0; i < id; i++) {
 			meta.setPosition(meta.getPosition() + 2);
-			image.setPosition(image.getPosition() + meta.readUShort() * meta.readUShort());
+			int w = meta.readUShort();
+			int h = meta.readUShort();
+			image.setPosition(image.getPosition() + w * h);
 			meta.setPosition(meta.getPosition() + 1);
 		}
 
@@ -153,13 +175,14 @@ public final class IndexedImage extends GameRaster {
 		drawOffsetY = meta.readUByte();
 		width = meta.readUShort();
 		height = meta.readUShort();
+
 		int type = meta.readUByte();
 		int pixels = width * height;
 		raster = new byte[pixels];
 
 		if (type == 0) {
-			for (int index = 0; index < pixels; index++) {
-				raster[index] = image.readByte();
+			for (int i = 0; i < pixels; i++) {
+				raster[i] = image.readByte();
 			}
 		} else {
 			for (int x = 0; x < width; x++) {

@@ -419,12 +419,17 @@ public final class Sprite extends GameRaster {
 			image.getRGB(0, 0, subWidth, subHeight, set.raster, 0, subWidth);
 		return set;
 	}
-	
+
 	public Sprite(Archive archive, String name, int id) {
-		Buffer sprite = new Buffer(archive.read(name + ".dat"););
-		Buffer meta = new Buffer(archive.readFile("index.dat"));
-		if (sprite.getPayload() == null)
+		com.displee.cache.index.archive.file.File spriteFile = archive.file(name + ".dat");
+		com.displee.cache.index.archive.file.File metaFile = archive.file("index.dat");
+
+		if (spriteFile == null || metaFile == null || spriteFile.getData() == null || metaFile.getData() == null)
 			return;
+
+		Buffer sprite = new Buffer(spriteFile.getData());
+		Buffer meta = new Buffer(metaFile.getData());
+
 		meta.setPosition(sprite.readUShort());
 
 		resizeWidth = meta.readUShort();
