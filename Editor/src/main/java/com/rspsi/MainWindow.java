@@ -879,15 +879,8 @@ public class MainWindow extends Application {
 
 					cache.update();
 
-					Platform.runLater(() ->
-							FXDialogs.showConfirm(stage, "Success", "Region saved to cache.")
-					);
-
 				} catch (Exception e) {
 					e.printStackTrace();
-					Platform.runLater(() ->
-							FXDialogs.showError(stage, "Error", "Failed to save region to cache.")
-					);
 				}
 			}).start();
 		});

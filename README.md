@@ -5,18 +5,9 @@ Huge credit to the authors of this work.
 
 # RSPSI
 
-
-## Features:
-
+### Features: 
 - Predefined list of over 760 locations. (x,y)
 - Save directly to the cache.
-- Swatches.
-
-
-<img src="https://imgur.com/ZJr5yBe.png"/>
-
-<img src="https://imgur.com/jqGUGei"/>
-
 
 ### Getting Started
 Follow the steps below to set up and run the editor properly.

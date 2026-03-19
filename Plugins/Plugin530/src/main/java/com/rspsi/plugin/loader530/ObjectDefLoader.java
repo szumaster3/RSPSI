@@ -264,33 +264,6 @@ public class ObjectDefLoader extends ObjectDefinitionLoader {
 					buffer.get();
 				} else if (opcode == 102) {
 					buffer.getShort();
-				} else if (opcode == 103) {
-					buffer.get();
-
-				} else if (opcode == 104) {
-					buffer.get();
-
-				} else if (opcode == 105) {
-					buffer.get();
-
-				} else if (opcode == 106) {
-					int length = buffer.get() & 0xff;
-					for (int i = 0; i < length; i++) {
-						buffer.getShort();
-						buffer.get();
-					}
-
-				} else if (opcode == 107) {
-					buffer.getShort();
-
-				} else if (opcode >= 150 && opcode <= 154) {
-					ByteBufferUtils.getOSRSString(buffer);
-
-				} else if (opcode == 160) {
-					int length = buffer.get() & 0xff;
-					for (int i = 0; i < length; i++) {
-						buffer.getShort();
-					}
 				} else if (opcode == 249) {
 					int var1 = buffer.get() & 0xff;
 					for (int var2 = 0; var2 < var1; var2++) {
