@@ -7,8 +7,8 @@ import com.jagex.cache.loader.floor.FloorDefinitionLoader;
 import com.jagex.cache.loader.floor.FloorType;
 import com.jagex.util.ByteBufferUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.displee.cache.index.archive.Archive;
-import org.displee.cache.index.archive.file.File;
+import com.displee.cache.index.archive.Archive;
+import com.displee.cache.index.archive.file.File;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -19,48 +19,48 @@ import java.util.Objects;
 @Slf4j
 public class FloorDefLoader extends com.jagex.cache.loader.floor.FloorDefinitionLoader {
 
-    private Floor[] overlays;
-    private Floor[] underlays;
+	private Floor[] overlays;
+	private Floor[] underlays;
 
-    @Override
-    public void init(org.displee.cache.index.archive.Archive archive) {
+	@Override
+	public void init(com.displee.cache.index.archive.Archive archive) {
 
-    }
+	}
 
 	@Override
 	public void init(byte[] data) {
 
 	}
 
-    public void decodeUnderlays(org.displee.cache.index.archive.Archive archive) {
-        int size = archive.getLastFile().getId();
-        List<Floor> floors = Lists.newArrayList();
-        for (int id = 0; id < size; id++) {
-            org.displee.cache.index.archive.file.File underlay = archive.getFile(id);
-            if (Objects.nonNull(underlay) && Objects.nonNull(underlay.getData())) {
-                Floor floor = decodeUnderlay(ByteBuffer.wrap(underlay.getData()));
-                floor.generateHsl();
-                floors.add(floor);
-            }
-        }
-        underlays = floors.toArray(new Floor[0]);
-        log.info("Loaded {} underlays", underlays.length);
-    }
+	public void decodeUnderlays(com.displee.cache.index.archive.Archive archive) {
+		int size = archive.last().getId();
+		List<Floor> floors = Lists.newArrayList();
+		for (int id = 0; id < size; id++) {
+			com.displee.cache.index.archive.file.File underlay = archive.file(id);
+			if (Objects.nonNull(underlay) && Objects.nonNull(underlay.getData())) {
+				Floor floor = decodeUnderlay(ByteBuffer.wrap(underlay.getData()));
+				floor.generateHsl();
+				floors.add(floor);
+			}
+		}
+		underlays = floors.toArray(new Floor[0]);
+		log.info("Loaded {} underlays", underlays.length);
+	}
 
-    public void decodeOverlays(Archive archive) {
-        int size = archive.getLastFile().getId();
-        List<Floor> floors = Lists.newArrayList();
-        for (int id = 0; id < size; id++) {
-            File overlays = archive.getFile(id);
-            if (Objects.nonNull(overlays) && Objects.nonNull(overlays.getData())) {
-                Floor floor = decodeOverlay(ByteBuffer.wrap(overlays.getData()));
-                floor.generateHsl();
-                floors.add(floor);
-            }
-        }
-        overlays = floors.toArray(new Floor[0]);
-        log.info("Loaded {} overlays", overlays.length);
-    }
+	public void decodeOverlays(Archive archive) {
+		int size = archive.last().getId();
+		List<Floor> floors = Lists.newArrayList();
+		for (int id = 0; id < size; id++) {
+			File overlays = archive.file(id);
+			if (Objects.nonNull(overlays) && Objects.nonNull(overlays.getData())) {
+				Floor floor = decodeOverlay(ByteBuffer.wrap(overlays.getData()));
+				floor.generateHsl();
+				floors.add(floor);
+			}
+		}
+		overlays = floors.toArray(new Floor[0]);
+		log.info("Loaded {} overlays", overlays.length);
+	}
 
 	public Floor decodeOverlay(ByteBuffer buffer) {
 		Floor floor = new Floor();
@@ -212,7 +212,7 @@ public class FloorDefLoader extends com.jagex.cache.loader.floor.FloorDefinition
 		return (lumOverlay >> 1) + ((satOverlay >> 5 << 7) + ((hueOverlay & 0xff) >> 2 << 10));
 	}
 
-	 private void rgbhsl(Floor floor, int color) {
+	private void rgbhsl(Floor floor, int color) {
 		double red = (double) (color >> 16 & 0xff) / 255.0;
 		double green = (double) (color >> 8 & 0xff) / 255.0;
 		double blue = (double) (color & 0xff) / 255.0;
@@ -296,21 +296,21 @@ public class FloorDefLoader extends com.jagex.cache.loader.floor.FloorDefinition
 	}
 
 
-    @Override
-    public Floor getFloor(int id, FloorType type) {
-        if(type == FloorType.OVERLAY)
-            return overlays[id];
-        else
-            return underlays[id];
-    }
+	@Override
+	public Floor getFloor(int id, FloorType type) {
+		if(type == FloorType.OVERLAY)
+			return overlays[id];
+		else
+			return underlays[id];
+	}
 
-    @Override
-    public int getSize(FloorType type) {
-        if(type == FloorType.OVERLAY)
-            return overlays.length;
-        else
-            return underlays.length;
-    }
+	@Override
+	public int getSize(FloorType type) {
+		if(type == FloorType.OVERLAY)
+			return overlays.length;
+		else
+			return underlays.length;
+	}
 
 	@Override
 	public int count() {

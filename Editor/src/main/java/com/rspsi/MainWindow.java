@@ -1,45 +1,7 @@
 package com.rspsi;
 
-import com.rspsi.dialogs.RenderDistanceDialog;
-import com.rspsi.options.KeyboardState;
-import com.rspsi.util.*;
-import com.sun.javafx.stage.FocusUngrabEvent;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.stage.WindowEvent;
-import org.displee.utilities.GZIPUtils;
-
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-import org.major.map.RenderFlags;
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SimpleScheduleBuilder;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.impl.StdSchedulerFactory;
-
+import com.displee.cache.CacheLibrary;
+import com.displee.cache.index.Index;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.jagex.Client;
@@ -62,6 +24,7 @@ import com.rspsi.controllers.MainController;
 import com.rspsi.controls.RemappingTool;
 import com.rspsi.controls.SwatchControl;
 import com.rspsi.datasets.ObjectDataset;
+import com.rspsi.dialogs.RenderDistanceDialog;
 import com.rspsi.dialogs.TileCopyDialog;
 import com.rspsi.dialogs.TileDeleteDialog;
 import com.rspsi.dialogs.TileExportDialog;
@@ -75,20 +38,24 @@ import com.rspsi.misc.StatusUpdate;
 import com.rspsi.misc.ToolType;
 import com.rspsi.misc.XTEAManager;
 import com.rspsi.options.Config;
+import com.rspsi.options.KeyboardState;
 import com.rspsi.options.Options;
 import com.rspsi.plugins.ApplicationPluginLoader;
 import com.rspsi.resources.ResourceLoader;
 import com.rspsi.swatches.BaseSwatch;
 import com.rspsi.swatches.OverlaySwatch;
 import com.rspsi.swatches.UnderlaySwatch;
-
+import com.rspsi.util.*;
+import com.rspsi.workspace.misc.PredefiniedLocation;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
@@ -104,6 +71,27 @@ import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import com.displee.util.GZIPUtils;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.major.map.RenderFlags;
+
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Getter
@@ -246,7 +234,7 @@ public class MainWindow extends Application {
 
 			scene.setFill(Color.TRANSPARENT);
 
-			primaryStage.setTitle("RSPSi Map Editor 1.16.1");
+			primaryStage.setTitle("RSPSi Map Editor 1.16.1a");
 			primaryStage.initStyle(StageStyle.TRANSPARENT);
 			primaryStage.setScene(scene);
 			primaryStage.getIcons().addAll(ResourceLoader.getSingleton().getIcons());
@@ -483,7 +471,7 @@ public class MainWindow extends Application {
 
 
 			if(clientInstance.getCache() != null) {
-				if(!clientInstance.getCache().getIndexedFileSystem().is317()) {
+
 					String xteaLocation = Settings.getSetting("xteaLoc", "");
 					Consumer<Boolean> pickXTEA = (showError) -> {
 						String currentXTEALoc = Settings.getSetting("xteaLoc", "");
@@ -507,7 +495,7 @@ public class MainWindow extends Application {
 					MenuItem changeXTEALoc = new MenuItem("Change XTEAs");
 					changeXTEALoc.setOnAction(evt -> pickXTEA.accept(false));
 					controller.getFileMenu().getItems().add(controller.getFileMenu().getItems().size() - 2, changeXTEALoc);
-				}
+
 			}
 			primaryStage.addEventHandler(KeyEvent.ANY, gameKeyListener);
 			primaryStage.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -791,14 +779,13 @@ public class MainWindow extends Application {
 			byte[] tileMap = MultiMapEncoder.encode(Lists.newArrayList(clientInstance.chunks));
 
 
-
 			try {
 
 				Files.write(landscapeFile.toPath(), tileMap);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				FXDialogs.showError(stage,"Error while saving map!", "There was an error while writing packed maps file.");
+				FXDialogs.showError(stage, "Error while saving map!", "There was an error while writing packed maps file.");
 			}
 
 
@@ -807,7 +794,7 @@ public class MainWindow extends Application {
 			int startX = clientInstance.xCameraPos;
 			int startY = clientInstance.yCameraPos;
 
-			for(Chunk chunk : clientInstance.chunks) {
+			for (Chunk chunk : clientInstance.chunks) {
 				clientInstance.xCameraPos = (chunk.offsetX + 32) * 128;
 				clientInstance.yCameraPos = (chunk.offsetY + 32) * 128;
 				File landscapeFile = RetentionFileChooser.showSaveDialog("Enter a name for tiles...", stage, chunk.tileMapId + "",
@@ -826,12 +813,12 @@ public class MainWindow extends Application {
 				if (landscapeFile.getName().endsWith(".gz")) {
 					try {
 						tileMap = GZIPUtils.gzipBytes(tileMap);
-						if(tileMap == null)
+						if (tileMap == null)
 							throw new IOException("GZIP error");
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-						FXDialogs.showError(stage,"Error while saving map!",
+						FXDialogs.showError(stage, "Error while saving map!",
 								"There was an error while writing map file.");
 						return;
 					}
@@ -839,12 +826,12 @@ public class MainWindow extends Application {
 				if (objectFile.getName().endsWith(".gz")) {
 					try {
 						objectMap = GZIPUtils.gzipBytes(objectMap);
-						if(objectMap == null)
+						if (objectMap == null)
 							throw new IOException("GZIP error");
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-						FXDialogs.showError(stage,"Error while saving map!",
+						FXDialogs.showError(stage, "Error while saving map!",
 								"There was an error while writing map file.");
 						return;
 					}
@@ -857,15 +844,45 @@ public class MainWindow extends Application {
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					FXDialogs.showError(stage,"Error while saving map!", "There was an error while writing map file.");
+					FXDialogs.showError(stage, "Error while saving map!", "There was an error while writing map file.");
 				}
 
 			}
 
-
 			clientInstance.xCameraPos = startX;
 			clientInstance.yCameraPos = startY;
 
+		});
+
+		controller.getSaveToCacheBtn().setOnAction(act -> {
+			if (clientInstance.chunks.isEmpty()) {
+				FXDialogs.showError(stage, "Error", "No region loaded in editor.");
+				return;
+			}
+
+			Chunk chunk = clientInstance.chunks.get(0);
+			int landArchive = chunk.tileMapId;
+			int objectArchive = chunk.objectMapId;
+
+			CacheLibrary cache = CacheLibrary.create(Config.cacheLocation.get());
+
+			new Thread(() -> {
+				try {
+
+					byte[] objectMap = clientInstance.sceneGraph.saveObjects(chunk);
+					byte[] tileMap = chunk.mapRegion.save_terrain_block(chunk);
+
+					Index index5 = cache.index(5);
+
+					cache.put(5, landArchive, tileMap);
+					cache.put(5, objectArchive, objectMap);
+
+					cache.update();
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}).start();
 		});
 	}
 
@@ -965,33 +982,59 @@ public class MainWindow extends Application {
 		});
 
 		controller.getOpenCoordinateButton().setOnAction(evt -> {
-			/*String value = FXDialogs.showTextInput("Load from coordinates", "Please enter the regions coordinates in the format x,y: ", "");
-			if(value != null && !value.equals("")) {
-				String[] split = value.replaceAll(" ", "").split(",");
-				int x = Integer.valueOf(split[0]);
-				int y = Integer.valueOf(split[1]);
-				x /= 64;
-				y /= 64;
-				int hash = (x << 0x39b8d2e8) + y;
-				Client.runLater.add(() -> clientInstance.loadCoordinates((hash >> 8) * 64, (hash & 0xff) * 64, 1, 1));
-			}*/
 
-			pickCoords.show();
-			if(!pickCoords.valid())
-				return;
-			int x = pickCoords.getXCoordinate();
-			int y = pickCoords.getYCoordinate();
-			x /= 64;
-			y /= 64;
-			int hash = (x << 8) + y;
-			int width = pickCoords.getWidth();
-			int length = pickCoords.getLength();
-			Client.runLater.add(() -> {
-				clientInstance.loadCoordinates((hash >> 8) * 64, (hash & 0xff) * 64, width, length);
-				fullMapView.resizeMap();
-			});
+            PredefiniedLocation predefiniedLocation = new PredefiniedLocation();
+			Optional<String> selectedCoords = predefiniedLocation.showLocationDialog(stage);
 
-		});
+            int hash;
+            int y;
+            int x;
+            if (selectedCoords.isPresent()) {
+                String[] split = selectedCoords.get().split(",");
+                x = Integer.parseInt(split[0]);
+                y = Integer.parseInt(split[1]);
+
+                x /= 64;
+                y /= 64;
+                hash = (x << 8) + y;
+
+                Client.runLater.add(() -> {
+                    clientInstance.loadCoordinates(
+                            (hash >> 8) * 64,
+                            (hash & 0xff) * 64,
+                            1,
+                            1
+                    );
+                    fullMapView.resizeMap();
+                });
+
+                return;
+            }
+
+            pickCoords.show();
+            if (!pickCoords.valid())
+                return;
+
+            x = pickCoords.getXCoordinate();
+            y = pickCoords.getYCoordinate();
+
+            x /= 64;
+            y /= 64;
+            hash = (x << 8) + y;
+
+            int width = pickCoords.getWidth();
+            int length = pickCoords.getLength();
+
+            Client.runLater.add(() -> {
+                clientInstance.loadCoordinates(
+                        (hash >> 8) * 64,
+                        (hash & 0xff) * 64,
+                        width,
+                        length
+                );
+                fullMapView.resizeMap();
+            });
+        });
 	}
 
 	public static MainWindow getSingleton() {

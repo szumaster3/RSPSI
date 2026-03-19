@@ -1,4 +1,4 @@
-package org.displee.utilities;
+package org.displee.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,9 +9,6 @@ import java.io.OutputStream;
  * @author Displee
  */
 public class Miscellaneous {
-
-
-
 	/**
 	 * Copies all bytes from the input stream to the output stream. Does not close or flush either
 	 * stream.

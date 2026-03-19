@@ -54,8 +54,6 @@ public class MeshLoader {
 		switch (revision) {
 			case REVISION_525:
 				return new Mesh525(data);
-			case REVISION_742:
-				return new Mesh742(data);
 			case REVISION_622:
 				return new Mesh622(data);
 			case REVISION_317:
@@ -71,9 +69,6 @@ public class MeshLoader {
 		Mesh mesh = null;
 		try {
 			switch (revision) {
-				case REVISION_742:
-					mesh = new Mesh742(data);
-					break;
 				case REVISION_622:
 					mesh = new Mesh622(data);
 					break;

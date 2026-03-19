@@ -1,6 +1,6 @@
 package com.jagex.cache.def;
 
-import org.displee.cache.index.Index;
+import com.displee.cache.index.Index;
 
 import java.util.Arrays;
 

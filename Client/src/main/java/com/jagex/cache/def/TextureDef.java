@@ -1,7 +1,7 @@
 package com.jagex.cache.def;
 
 import com.jagex.io.Buffer;
-import org.displee.cache.index.archive.Archive;
+import com.displee.cache.index.archive.Archive;
 
 public final class TextureDef
 {
@@ -9,110 +9,111 @@ public final class TextureDef
 	{
 	}
 
-	public static void unpackConfig(Archive streamLoader)
-	{
-		Buffer buffer = new Buffer(streamLoader.readFile("textures.dat"));
-		int count = buffer.readUShort();
-		textures = new TextureDef[count];
-		for (int i = 0; i != count; ++i)
-			if (buffer.readUByte() == 1)
-				textures[i] = new TextureDef();
+	public static void unpackConfig(Archive streamLoader) {
+		com.displee.cache.index.archive.file.File file = streamLoader.file("textures.dat");
+		if (file != null && file.getData() != null) {
+			Buffer buffer = new Buffer(file.getData());
+			int count = buffer.readUShort();
+			textures = new TextureDef[count];
+			for (int i = 0; i != count; ++i)
+				if (buffer.readUByte() == 1)
+					textures[i] = new TextureDef();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aBoolean1223 = buffer.readUByte() == 1;
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aBoolean1223 = buffer.readUByte() == 1;
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aBoolean1204 = buffer.readUByte() == 1;
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aBoolean1204 = buffer.readUByte() == 1;
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aBoolean1205 = buffer.readUByte() == 1;
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aBoolean1205 = buffer.readUByte() == 1;
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aByte1217 = buffer.readByte();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aByte1217 = buffer.readByte();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aByte1225 = buffer.readByte();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aByte1225 = buffer.readByte();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aByte1214 = buffer.readByte();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aByte1214 = buffer.readByte();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aByte1213 = buffer.readByte();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aByte1213 = buffer.readByte();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aShort1221 = (short) buffer.readUShort();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aShort1221 = (short) buffer.readUShort();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aByte1211 = buffer.readByte();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aByte1211 = buffer.readByte();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aByte1203 = buffer.readByte();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aByte1203 = buffer.readByte();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aBoolean1222 = buffer.readUByte() == 1;
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aBoolean1222 = buffer.readUByte() == 1;
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aBoolean1216 = buffer.readUByte() == 1;
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aBoolean1216 = buffer.readUByte() == 1;
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aByte1207 = buffer.readByte();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aByte1207 = buffer.readByte();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aBoolean1212 = buffer.readUByte() == 1;
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aBoolean1212 = buffer.readUByte() == 1;
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aBoolean1210 = buffer.readUByte() == 1;
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aBoolean1210 = buffer.readUByte() == 1;
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].aBoolean1215 = buffer.readUByte() == 1;
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].aBoolean1215 = buffer.readUByte() == 1;
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].anInt1202 = buffer.readUByte();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].anInt1202 = buffer.readUByte();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].anInt1206 = buffer.readInt();
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].anInt1206 = buffer.readInt();
 
 
-		for (int i = 0; i != count; ++i)
-			if (textures[i] != null)
-				textures[i].anInt1226 = buffer.readUByte();
-
+			for (int i = 0; i != count; ++i)
+				if (textures[i] != null)
+					textures[i].anInt1226 = buffer.readUByte();
+		}
 
 	}
 

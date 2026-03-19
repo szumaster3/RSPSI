@@ -3,7 +3,6 @@ rootProject.name = '530-Plugin'
 include ':Client'
 include ':Editor'
 include ':Plugins'
-include ':RS-Cache-Library'
 
 //include 'Plugins:AstraeusPlugin'
 //include 'Plugins:AscendPlugin'

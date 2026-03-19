@@ -1,6 +1,7 @@
 package com.rspsi.plugin;
 
-import org.displee.cache.index.Index;
+import com.displee.cache.CacheLibrary;
+import com.displee.cache.index.Index;
 
 import com.jagex.Client;
 import com.jagex.cache.loader.anim.FrameLoader;
@@ -24,6 +25,7 @@ import com.rspsi.plugin.loader530.TextureLoaderOSRS;
 import com.rspsi.plugin.loader530.VarbitLoaderOSRS;
 import com.rspsi.plugins.ClientPlugin;
 
+import java.util.Objects;
 public class Plugin530 implements ClientPlugin {
 
     private AnimationFrameLoader frameLoader;
@@ -69,16 +71,20 @@ public class Plugin530 implements ClientPlugin {
         frameLoader.init(2500);
 
         Index configIndex = client.getCache().readFile(CacheFileType.CONFIG);
-        floorLoader.decodeUnderlays(configIndex.getArchive(1));
-        floorLoader.decodeOverlays(configIndex.getArchive(4));
+
+        floorLoader.decodeUnderlays(Objects.requireNonNull(configIndex.archive(1)));
+        floorLoader.decodeOverlays(Objects.requireNonNull(configIndex.archive(4)));
         Index varbitIndex = client.getCache().readFile(CacheFileType.VARBIT);
         varbitLoader.decodeVarbits(varbitIndex);
-        objLoader.decodeObjects(client.getCache().getIndexedFileSystem().getIndex(16));
-		animDefLoader.init(configIndex.getArchive(12));
-		graphicLoader.init(configIndex.getArchive(13));
-        Index mapIndex = client.getCache().readFile(CacheFileType.MAP);
-        mapIndexLoader.init(mapIndex);
+        objLoader.decodeObjects(client.getCache().getCacheLibrary().index(16));
+		animDefLoader.init(configIndex.archive(12));
+		graphicLoader.init(configIndex.archive(13));
+//      areaLoader.init(configIndex.archive(35));
+//		Index skeletonIndex = client.getCache().readFile(CacheFileType.SKELETON);
+//		skeletonLoader.init(skeletonIndex);
 
+        CacheLibrary cache = client.getCache().getCacheLibrary();
+        mapIndexLoader.init(cache);
     }
 
     @Override

@@ -1,10 +1,16 @@
 [![License][license-shield]][license-url]
 
+
+Huge credit to the authors of this work.
+
 # RSPSI
 
-Follow the steps below to set up and run the editor properly.
+### Features: 
+- Predefined list of over 760 locations. (x,y)
+- Save directly to the cache.
 
 ### Getting Started
+Follow the steps below to set up and run the editor properly.
 
 1. **Fork or Clone the Repository**  
    Either fork this project or clone it directly to your local machine.
@@ -25,7 +31,7 @@ Follow the steps below to set up and run the editor properly.
    - Execute `jar` followed by `buildAndMove`. This will create the plugin JAR in `Editor/plugins/inactive/`.
 
 6. **Run the Editor**
-   - Go to `Editor → Application → Run` in your IDE, select the plugin, and launch the editor.
+   - Go to `Editor -> Application → Run` in your IDE, select the plugin, and launch the editor.
 
 7. **Editor Settings**
    - Editor settings are stored in the `.rspsi/` directory, located alongside your `.idea` folder.

@@ -1,12 +1,15 @@
 package com.rspsi.plugin.loader530;
 
+import com.displee.cache.index.Index;
+import com.displee.cache.index.archive.Archive;
+import com.displee.cache.index.archive.file.File;
 import com.jagex.cache.config.VariableBits;
 import com.jagex.cache.loader.config.VariableBitLoader;
 import com.jagex.io.Buffer;
 import org.apache.commons.compress.utils.Lists;
-import org.displee.cache.index.Index;
-import org.displee.cache.index.archive.Archive;
-import org.displee.cache.index.archive.file.File;
+import com.displee.cache.index.Index;
+import com.displee.cache.index.archive.Archive;
+import com.displee.cache.index.archive.file.File;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -38,11 +41,11 @@ public class VarbitLoaderOSRS extends VariableBitLoader {
     }
 
     public void decodeVarbits(Index index) {
-        int size = index.getArchives().length * 0x3ff;
+        int size = index.archives().length * 0x3ff;
         VariableBits[] varbits = new VariableBits[size];
 
         for(int i = 0; i < size; i++) {
-            File file = index.getArchive(i >>> 10).getFile(i & 0x3FF);
+            File file = index.archive(i >>> 10).file(i & 0x3FF);
             if (Objects.nonNull(file) && Objects.nonNull(file.getData())) {
                 ByteBuffer buff = ByteBuffer.wrap(file.getData());
                 VariableBits varbit = new VariableBits();
