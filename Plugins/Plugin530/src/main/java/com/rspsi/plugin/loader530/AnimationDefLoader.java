@@ -1,12 +1,12 @@
 package com.rspsi.plugin.loader530;
 
+import com.displee.cache.index.archive.Archive;
 import com.jagex.cache.anim.Animation;
 import com.jagex.cache.loader.anim.AnimationDefinitionLoader;
 import com.jagex.io.Buffer;
-import com.displee.cache.index.archive.Archive;
 
 
-public class AnimationDefLoader extends com.jagex.cache.loader.anim.AnimationDefinitionLoader {
+public class AnimationDefLoader extends AnimationDefinitionLoader {
 
     private int count;
     private Animation[] animations;
@@ -127,11 +127,10 @@ public class AnimationDefLoader extends com.jagex.cache.loader.anim.AnimationDef
 
     @Override
     public Animation forId(int id) {
-        if(id < 0 || id > animations.length)
+        if (id < 0 || id > animations.length)
             id = 0;
         return animations[id];
     }
-
 
 
 }

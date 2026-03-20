@@ -16,7 +16,7 @@ import java.util.Arrays;
 public final class Sprite extends GameRaster {
 
 	private static void draw(int sourceIndex, int width, int[] dest, int k, int[] source, int sourceStep, int height,
-			int destStep, int alpha, int destIndex) {
+							 int destStep, int alpha, int destIndex) {
 		int ialpha = 256 - alpha;
 
 		for (int y = -height; y < 0; y++) {
@@ -37,7 +37,7 @@ public final class Sprite extends GameRaster {
 	}
 
 	private static void draw(int[] raster, int[] image, int colour, int sourceIndex, int destIndex, int width,
-                             int height, int destStep, int sourceStep) {
+							 int height, int destStep, int sourceStep) {
 		int minX = -(width >> 2);
 		width = -(width & 3);
 
@@ -87,7 +87,7 @@ public final class Sprite extends GameRaster {
 	}
 
 	private static void drawBehind(byte[] image, int[] input, int width, int height, int[] output, int in, int destStep,
-			int destIndex, int sourceStep, int sourceIndex) {
+								   int destIndex, int sourceStep, int sourceIndex) {
 		int l1 = -(width >> 2);
 		width = -(width & 3);
 
@@ -138,7 +138,7 @@ public final class Sprite extends GameRaster {
 	}
 
 	private static void method347(int destIndex, int width, int height, int sourceStep, int sourceIndex, int destStep,
-			int[] source, int[] raster) {
+								  int[] source, int[] raster) {
 		int minX = -(width >> 2);
 		width = -(width & 3);
 
@@ -170,7 +170,7 @@ public final class Sprite extends GameRaster {
 	private int verticalOffset;
 
 	private int width;
-	
+
 	/**
 	 * This flag indicates that the pixels should be read vertically instead of
 	 * horizontally.
@@ -296,13 +296,13 @@ public final class Sprite extends GameRaster {
 					}
 				}
 			}
-		
+
 			image.getRGB(0, 0, subWidth, subHeight, set.raster, 0, subWidth);
 			sprites[id] = set;
 		}
 		return sprites;
 	}
-	
+
 	public static Sprite decode(ByteBuffer buffer) {
 		/* find the size of this sprite set */
 		buffer.position(buffer.limit() - 2);
@@ -349,87 +349,82 @@ public final class Sprite extends GameRaster {
 		/* read the pixels themselves */
 		buffer.position(0);
 		//for (int id = 0; id < size; id++) {
-			/* grab some frequently used values */
-			int subWidth = subWidths[0], subHeight = subHeights[0];
-			int offsetX = offsetsX[0], offsetY = offsetsY[0];
+		/* grab some frequently used values */
+		int subWidth = subWidths[0], subHeight = subHeights[0];
+		int offsetX = offsetsX[0], offsetY = offsetsY[0];
 
-			/* create a BufferedImage to store the resulting image */
-			BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		/* create a BufferedImage to store the resulting image */
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
-			/* allocate an array for the palette indices */
-			int[][] indices = new int[subWidth][subHeight];
+		/* allocate an array for the palette indices */
+		int[][] indices = new int[subWidth][subHeight];
+
+		/*
+		 * read the flags so we know whether to read horizontally or
+		 * vertically
+		 */
+		int flags = buffer.get() & 0xFF;
+
+		/* now read the image */
+		if (image != null) {
+			/* read the palette indices */
+			if ((flags & FLAG_VERTICAL) != 0) {
+				for (int x = 0; x < subWidth; x++) {
+					for (int y = 0; y < subHeight; y++) {
+						indices[x][y] = buffer.get() & 0xFF;
+					}
+				}
+			} else {
+				for (int y = 0; y < subHeight; y++) {
+					for (int x = 0; x < subWidth; x++) {
+						indices[x][y] = buffer.get() & 0xFF;
+					}
+				}
+			}
 
 			/*
-			 * read the flags so we know whether to read horizontally or
-			 * vertically
+			 * read the alpha (if there is alpha) and convert values to ARGB
 			 */
-			int flags = buffer.get() & 0xFF;
-
-			/* now read the image */
-			if (image != null) {
-				/* read the palette indices */
+			set.hasAlpha = true;
+			if ((flags & FLAG_ALPHA) != 0) {
 				if ((flags & FLAG_VERTICAL) != 0) {
 					for (int x = 0; x < subWidth; x++) {
 						for (int y = 0; y < subHeight; y++) {
-							indices[x][y] = buffer.get() & 0xFF;
+							int alpha = buffer.get() & 0xFF;
+							image.setRGB(x + offsetX, y + offsetY, alpha << 24 | palette[indices[x][y]]);
 						}
 					}
 				} else {
 					for (int y = 0; y < subHeight; y++) {
 						for (int x = 0; x < subWidth; x++) {
-							indices[x][y] = buffer.get() & 0xFF;
+							int alpha = buffer.get() & 0xFF;
+							image.setRGB(x + offsetX, y + offsetY, alpha << 24 | palette[indices[x][y]]);
 						}
 					}
 				}
-
-				/*
-				 * read the alpha (if there is alpha) and convert values to ARGB
-				 */
-				set.hasAlpha = true;
-				if ((flags & FLAG_ALPHA) != 0) {
-					if ((flags & FLAG_VERTICAL) != 0) {
-						for (int x = 0; x < subWidth; x++) {
-							for (int y = 0; y < subHeight; y++) {
-								int alpha = buffer.get() & 0xFF;
-								image.setRGB(x + offsetX, y + offsetY, alpha << 24 | palette[indices[x][y]]);
-							}
-						}
-					} else {
-						for (int y = 0; y < subHeight; y++) {
-							for (int x = 0; x < subWidth; x++) {
-								int alpha = buffer.get() & 0xFF;
-								image.setRGB(x + offsetX, y + offsetY, alpha << 24 | palette[indices[x][y]]);
-							}
-						}
-					}
-				} else {
-					for (int x = 0; x < subWidth; x++) {
-						for (int y = 0; y < subHeight; y++) {
-							int index = indices[x][y];
-							if (index == 0) {
-								image.setRGB(x + offsetX, y + offsetY, 0);
-							} else {
-								image.setRGB(x + offsetX, y + offsetY, 0xFF000000 | palette[index]);
-							}
+			} else {
+				for (int x = 0; x < subWidth; x++) {
+					for (int y = 0; y < subHeight; y++) {
+						int index = indices[x][y];
+						if (index == 0) {
+							image.setRGB(x + offsetX, y + offsetY, 0);
+						} else {
+							image.setRGB(x + offsetX, y + offsetY, 0xFF000000 | palette[index]);
 						}
 					}
 				}
 			}
+		}
 		//}
-			image.getRGB(0, 0, subWidth, subHeight, set.raster, 0, subWidth);
+		image.getRGB(0, 0, subWidth, subHeight, set.raster, 0, subWidth);
 		return set;
 	}
 
 	public Sprite(Archive archive, String name, int id) {
-		com.displee.cache.index.archive.file.File spriteFile = archive.file(name + ".dat");
-		com.displee.cache.index.archive.file.File metaFile = archive.file("index.dat");
-
-		if (spriteFile == null || metaFile == null || spriteFile.getData() == null || metaFile.getData() == null)
+		Buffer sprite = new Buffer(archive.file(name + ".dat").getData());
+		Buffer meta = new Buffer(archive.file("index.dat").getData());
+		if (sprite.getPayload() == null)
 			return;
-
-		Buffer sprite = new Buffer(spriteFile.getData());
-		Buffer meta = new Buffer(metaFile.getData());
-
 		meta.setPosition(sprite.readUShort());
 
 		resizeWidth = meta.readUShort();
@@ -519,7 +514,7 @@ public final class Sprite extends GameRaster {
 		this.height = resizeHeight = height;
 		horizontalOffset = verticalOffset = 0;
 	}
-	
+
 
 	public void drawBehind(IndexedImage image, int y, int x) {
 		drawBehind(GameRasterizer.getInstance(), image, y, x);
@@ -567,7 +562,7 @@ public final class Sprite extends GameRaster {
 			drawBehind(image.getImageRaster(), raster, width, height, rasterizer.getRaster(), 0, deltaWidth, k, l1, l);
 		}
 	}
-	
+
 
 	public void drawSprite(int x, int y) {
 		drawSprite(GameRasterizer.getInstance(), x, y);
@@ -665,14 +660,14 @@ public final class Sprite extends GameRaster {
 			draw(rasterizer.getRaster(), raster, 0, imageClip, rasterClip, width, height, rasterOffset, imageOffset);
 		}
 	}
-	
+
 
 	public void drawSprite(GameRasterizer rasterizer, int x, int y, double scale) {
-	
+
 		int height = (int) (this.height * scale);
 		int width = (int) (this.width * scale);
 		int[] raster = Sprite.resizePixels(this.raster, this.width, this.height, width, height);
-	
+
 		x += horizontalOffset;
 		y += verticalOffset;
 		int rasterClip = x + y * rasterizer.getWidth();
@@ -713,8 +708,8 @@ public final class Sprite extends GameRaster {
 			draw(rasterizer.getRaster(), raster, 0, imageClip, rasterClip, width, height, rasterOffset, imageOffset);
 		}
 	}
-	
-	
+
+
 
 	public void drawSprite(int x, int y, int alpha) {
 		drawSprite(GameRasterizer.getInstance(), x, y, alpha);
@@ -799,7 +794,7 @@ public final class Sprite extends GameRaster {
 	public void initRaster(GameRasterizer rasterizer) {
 		rasterizer.init(height, width, raster);
 	}
-	
+
 
 	public void method346(int x, int y) {
 		method346(GameRasterizer.getInstance(), x, y);
@@ -849,14 +844,14 @@ public final class Sprite extends GameRaster {
 			method347(destIndex, width, height, sourceStep, sourceIndex, destStep, raster, rasterizer.getRaster());
 		}
 	}
-	
+
 	public void method352(int height, int theta, int[] ai, int k, int[] destOffsets, int i1, int y, int x, int width,
-			int i2) {
+						  int i2) {
 		method352(GameRasterizer.getInstance(), height, theta, ai, k, destOffsets, i1, y, x, width, i2);
 	}
 
 	public void method352(GameRasterizer rasterizer, int height, int theta, int[] ai, int k, int[] destOffsets, int i1, int y, int x, int width,
-			int i2) {
+						  int i2) {
 		try {
 			int midX = -width / 2;
 			int midY = -height / 2;
@@ -888,7 +883,7 @@ public final class Sprite extends GameRaster {
 		} catch (Exception ex) {
 		}
 	}
-	
+
 
 	public void method353(int x, int y, int width, int height, double theta, int j, int l, int j1) {
 		method353(GameRasterizer.getInstance(), x, y, width, height, theta, j, l, j1);
@@ -1010,22 +1005,22 @@ public final class Sprite extends GameRaster {
 	public void setWidth(int width) {
 		this.width = width;
 	}
-	
+
 	private static int[] resizePixels(int[] pixels,int w1,int h1,int w2,int h2) {
-	    int[] temp = new int[w2*h2] ;
-	    double x_ratio = w1/(double)w2 ;
-	    double y_ratio = h1/(double)h2 ;
-	    double px, py ; 
-	    for (int i=0;i<h2;i++) {
-	        for (int j=0;j<w2;j++) {
-	            px = Math.floor(j*x_ratio) ;
-	            py = Math.floor(i*y_ratio) ;
-	            temp[(i*w2)+j] = pixels[(int)((py*w1)+px)] ;
-	        }
-	    }
-	    return temp ;
+		int[] temp = new int[w2*h2] ;
+		double x_ratio = w1/(double)w2 ;
+		double y_ratio = h1/(double)h2 ;
+		double px, py ;
+		for (int i=0;i<h2;i++) {
+			for (int j=0;j<w2;j++) {
+				px = Math.floor(j*x_ratio) ;
+				py = Math.floor(i*y_ratio) ;
+				temp[(i*w2)+j] = pixels[(int)((py*w1)+px)] ;
+			}
+		}
+		return temp ;
 	}
-	
+
 	private boolean hasAlpha;
 
 	public boolean hasAlpha() {
@@ -1037,7 +1032,7 @@ public final class Sprite extends GameRaster {
 		resizeWidth = width;
 		resizeHeight = height;
 		resize();
-		
+
 	}
 
 }

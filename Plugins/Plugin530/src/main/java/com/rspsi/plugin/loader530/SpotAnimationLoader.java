@@ -1,13 +1,12 @@
 package com.rspsi.plugin.loader530;
 
+import com.displee.cache.index.Index;
+import com.displee.cache.index.archive.Archive;
 import com.jagex.cache.anim.Graphic;
 import com.jagex.cache.loader.anim.AnimationDefinitionLoader;
 import com.jagex.cache.loader.anim.GraphicLoader;
 import com.jagex.io.Buffer;
-import com.displee.cache.index.Index;
-import com.displee.cache.index.archive.Archive;
 
-//Checked
 public class SpotAnimationLoader extends GraphicLoader {
 
 
@@ -21,7 +20,7 @@ public class SpotAnimationLoader extends GraphicLoader {
 
     @Override
     public Graphic forId(int id) {
-        if(id < 0 || id > count)
+        if (id < 0 || id > count)
             return null;
         return graphics[id];
     }
@@ -79,7 +78,7 @@ public class SpotAnimationLoader extends GraphicLoader {
                 }
                 graphic.setOriginalColours(originalColours);
                 graphic.setReplacementColours(replacementColours);
-            } else if(opcode == 41) {
+            } else if (opcode == 41) {
                 int len = buffer.readUByte();
                 for (int i = 0; i < len; i++) {
                     buffer.readUShort();

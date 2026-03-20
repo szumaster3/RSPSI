@@ -162,6 +162,10 @@ public class Cache {
 		return null;
 	}
 
+	public final Archive createArchive(int file, String name) {
+		return configArchive.archive(file);
+	}
+
 	public void close() throws IOException {
 		cacheLibrary.close();
 	}

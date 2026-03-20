@@ -451,13 +451,13 @@ public final class Client implements Runnable {
 	}
 
 	public final void load() {
-		if (cacheLoadingLock.isLocked()) {
+		if(cacheLoadingLock.isLocked()) {
 			log.info("Waiting for cache to load!");
 			cacheLoadingLock.lock();
 			log.info("Cache finished loading!");
 		}
 
-		if (!errorMessage.isEmpty()) {
+		if(!errorMessage.isEmpty()) {
 			clientLoaded = true;
 			return;
 		}
@@ -470,37 +470,98 @@ public final class Client implements Runnable {
 
 		clientLoaded = true;
 		ClientPluginLoader.loadPlugins();
-
 		try {
+			if(cache.getCacheLibrary().is317()) {
+				Archive graphics = cache.createArchive(4, "2d graphics");
+				Sprite[] scenes = new Sprite[1000];
+				Sprite[] functions = new Sprite[1000];
+				int lastIdx = 0;
+				try {
+					for (int scene = 0; scene < 93; scene++) {
+						scenes[scene] = new Sprite(graphics, "mapscene", scene);
+						lastIdx = scene;
+					}
+				} catch (Exception ex) {
+					//ex.printStackTrace();
+				}
+				mapScenes = Arrays.copyOf(scenes, lastIdx + 1);
 
+				lastIdx = 0;
+
+				try {
+					for (int function = 0; function < functions.length; function++) {
+						functions[function] = new Sprite(graphics, "mapfunction", function);
+						lastIdx = function;
+					}
+				} catch (Exception ex) {
+					//ex.printStackTrace();
+				}
+
+				mapFunctions = Arrays.copyOf(functions, lastIdx + 1);
+			} else {
 				mapScenes = new Sprite[0];
 				try {
 					Archive spriteArchive = cache.readFile(CacheFileType.SPRITE).archive("mapscene");
-					byte[] packed = null;
 					if (spriteArchive != null) {
-						com.displee.cache.index.archive.file.File file = spriteArchive.file(0);
-						if (file != null) packed = file.getData();
-					}
-					if (packed != null) {
-						mapScenes = Sprite.unpackAndDecode(ByteBuffer.wrap(packed));
+						byte[] packed = spriteArchive.file(0).getData();
+						if (packed != null) {
+							mapScenes = Sprite.unpackAndDecode(ByteBuffer.wrap(packed));
+						}
 					}
 				} catch (Exception ignored) {
+				}
+				if (mapScenes.length == 0) {
+					try {
+						Archive graphics = cache.createArchive(4, "2d graphics");
+						if (graphics != null) {
+							Sprite[] scenes = new Sprite[1000];
+							int lastScene = -1;
+							for (int scene = 0; scene < scenes.length; scene++) {
+								try {
+									scenes[scene] = new Sprite(graphics, "mapscene", scene);
+									lastScene = scene;
+								} catch (Exception ex) {
+									break;
+								}
+							}
+							mapScenes = lastScene == -1 ? new Sprite[0] : Arrays.copyOf(scenes, lastScene + 1);
+						}
+					} catch (Exception ignored) {
+					}
 				}
 
 				mapFunctions = new Sprite[0];
 				try {
 					Archive spriteArchive = cache.readFile(CacheFileType.SPRITE).archive("mapfunction");
-					byte[] packed = null;
 					if (spriteArchive != null) {
-						com.displee.cache.index.archive.file.File file = spriteArchive.file(0);
-						if (file != null) packed = file.getData();
-					}
-					if (packed != null) {
-						mapFunctions = Sprite.unpackAndDecode(ByteBuffer.wrap(packed));
+						byte[] packed = spriteArchive.file(0).getData();
+						if (packed != null) {
+							mapFunctions = Sprite.unpackAndDecode(ByteBuffer.wrap(packed));
+						}
 					}
 				} catch (Exception ignored) {
 				}
+				if (mapFunctions.length == 0) {
+					try {
+						Archive graphics = cache.createArchive(4, "2d graphics");
+						if (graphics != null) {
+							Sprite[] functions = new Sprite[1000];
+							int lastIdx = -1;
+							for (int function = 0; function < functions.length; function++) {
+								try {
+									functions[function] = new Sprite(graphics, "mapfunction", function);
+									lastIdx = function;
+								} catch (Exception ex) {
+									break;
+								}
+							}
 
+							mapFunctions = lastIdx == -1 ? new Sprite[0] : Arrays.copyOf(functions, lastIdx + 1);
+						}
+					} catch (Exception ignored) {
+					}
+				}
+			}
 
 			drawLoadingText(65, "Loading plugins...");
 
@@ -514,16 +575,16 @@ public final class Client implements Runnable {
 				}
 			});
 
-			if (!errorMessage.isEmpty())
+			if(!errorMessage.isEmpty())
 				throw new IllegalStateException(errorMessage);
+
+
 
 			log.info("Loaded {} map functions.", mapFunctions.length);
 			log.info("Loaded {} map scenes.", mapScenes.length);
-
 			drawLoadingText(100, "Preparing game engine");
-			GameRasterizer.getInstance().setBounds(0, 0, (int) gameCanvas.getWidth(), (int) gameCanvas.getHeight());
+			GameRasterizer.getInstance().setBounds(0, 0, (int)gameCanvas.getWidth(), (int)gameCanvas.getHeight());
 			GameRasterizer.getInstance().useViewport();
-
 			int[] ai = new int[64];
 			for (int i8 = 0; i8 < 64; i8++) {
 				int theta = i8 * 32 + 15;
@@ -539,11 +600,11 @@ public final class Client implements Runnable {
 			GameRasterizer.getInstance().setBrightness(0.6);
 			GameRasterizer.getInstance().setTextureBrightness(0.6);
 			gameLoaded.set(true);
-
 		} catch (Exception exception) {
 			errorMessage = "There was an error during initialization!";
 			error = true;
 			exception.printStackTrace();
+			//TODO Throw error
 		}
 	}
 

@@ -1,6 +1,5 @@
 package com.rspsi.plugin.loader530;
 
-
 import com.displee.cache.index.Index;
 import com.displee.cache.index.archive.Archive;
 import com.google.common.collect.Maps;
@@ -12,18 +11,10 @@ import com.jagex.cache.loader.object.ObjectDefinitionLoader;
 import com.jagex.io.Buffer;
 import com.jagex.util.ByteBufferUtils;
 import lombok.extern.slf4j.Slf4j;
-import com.displee.cache.index.Index;
-import com.displee.cache.index.archive.Archive;
-import com.displee.cache.index.archive.file.File;
 import org.displee.util.Miscellaneous;
 
-
-import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 @Slf4j
 public class ObjectDefLoader extends ObjectDefinitionLoader {
@@ -264,6 +255,7 @@ public class ObjectDefLoader extends ObjectDefinitionLoader {
 					buffer.get();
 				} else if (opcode == 102) {
 					buffer.getShort();
+
 				} else if (opcode == 249) {
 					int var1 = buffer.get() & 0xff;
 					for (int var2 = 0; var2 < var1; var2++) {
@@ -282,7 +274,7 @@ public class ObjectDefLoader extends ObjectDefinitionLoader {
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			log.info("Last successful opcode: " + lastOpcode);
+			log.info("Last succesful opcode: " + lastOpcode);
 		}
 
 		if (definition.isHollow()) {

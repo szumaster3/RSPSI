@@ -1,22 +1,17 @@
 package com.rspsi.plugin.loader530;
 
-import com.displee.cache.CacheLibrary;
 import com.displee.cache.index.Index;
 import com.displee.cache.index.archive.Archive;
-
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import com.rspsi.misc.XTEAManager;
-import org.apache.commons.compress.utils.Lists;
-
 import com.jagex.cache.loader.map.MapIndexLoader;
 import com.jagex.cache.loader.map.MapType;
 import com.jagex.io.Buffer;
 import com.rspsi.misc.RegionData;
+import org.apache.commons.compress.utils.Lists;
+
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.IntStream;
 
 public class MapIndexLoaderOSRS extends MapIndexLoader {
 
@@ -25,11 +20,7 @@ public class MapIndexLoaderOSRS extends MapIndexLoader {
 
 	@Override
 	public void init(Archive archive) {
-		com.displee.cache.index.archive.file.File mapIndexFile = archive.file("map_index");
-		if (mapIndexFile == null) {
-			throw new RuntimeException("map_index not found in archive " + archive.getId());
-		}
-		byte[] indices = mapIndexFile.getData().clone();
+		byte[] indices = archive.file("map_index").getData();
 		Buffer buffer = new Buffer(indices);
 		int count = buffer.readUShort();
 		mapHashes = new int[count];
@@ -130,41 +121,24 @@ public class MapIndexLoaderOSRS extends MapIndexLoader {
 
 	}
 
-	public void init(CacheLibrary cache) {
-
-		List<RegionData> regionData = new ArrayList<>();
-		Index mapIndex = cache.index(5);
-
+	public void init(Index mapIndex) {
+		List<RegionData> regionData = Lists.newArrayList();
 		for (int i = 0; i < 32768; i++) {
+			int x = (i >> 8);
+			int y = (i & 0xFF);
 
-			int x = i >> 8;
-			int y = i & 0xFF;
+			Archive map = mapIndex.archive("m" + x + "_" + y);
+			Archive land = mapIndex.archive("l" + x + "_" + y, null);
 
-			int mapId = -1;
-			int landId = -1;
+			RegionData data = new RegionData(i, map != null ? map.getId() : -1, land != null ? land.getId() : -1);
 
-			try {
-				Archive map = mapIndex.archive("m" + x + "_" + y);
-				if (map != null)
-					mapId = map.getId();
-			} catch (Exception ignored) {}
-
-			try {
-				Archive land = mapIndex.archive("l" + x + "_" + y);
-				if (land != null)
-					landId = land.getId();
-			} catch (Exception ignored) {}
-
-			if (mapId == -1 && landId == -1)
-				continue;
-
-			regionData.add(new RegionData(i, mapId, landId));
+			if (data.getLoc() != -1 && data.getObj() != -1) {
+				regionData.add(data);
+			}
 		}
-
 		mapHashes = new int[regionData.size()];
 		landscapes = new int[regionData.size()];
 		objects = new int[regionData.size()];
-
 		int index = 0;
 		for (RegionData data : regionData) {
 			mapHashes[index] = data.getHash();
@@ -172,8 +146,6 @@ public class MapIndexLoaderOSRS extends MapIndexLoader {
 			objects[index] = data.getObj();
 			index++;
 		}
-
-		System.out.println("Loaded " + regionData.size() + " regions from Index 5");
 	}
 
 }
