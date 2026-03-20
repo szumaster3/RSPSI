@@ -22,7 +22,7 @@ import com.rspsi.plugin.loader530.MapIndexLoaderOSRS;
 import com.rspsi.plugin.loader530.ObjectDefLoader;
 import com.rspsi.plugin.loader530.RSAreaLoaderOSRS;
 import com.rspsi.plugin.loader530.TextureLoaderOSRS;
-import com.rspsi.plugin.loader530.VarbitLoaderOSRS;
+import com.rspsi.plugin.loader530.VarbitLoader;
 import com.rspsi.plugins.ClientPlugin;
 
 import java.util.Objects;
@@ -33,7 +33,7 @@ public class Plugin530 implements ClientPlugin {
     private ObjectDefLoader objLoader;
     private AnimationDefLoader animDefLoader;
     private SpotAnimationLoader graphicLoader;
-    private VarbitLoaderOSRS varbitLoader;
+    private VarbitLoader varbitLoader;
     private MapIndexLoaderOSRS mapIndexLoader;
     private TextureLoaderOSRS textureLoader;
     private AnimationSkinLoader skeletonLoader;
@@ -50,7 +50,7 @@ public class Plugin530 implements ClientPlugin {
         textureLoader = new TextureLoaderOSRS();
         skeletonLoader = new AnimationSkinLoader();
         graphicLoader = new SpotAnimationLoader();
-        varbitLoader = new VarbitLoaderOSRS();
+        varbitLoader = new VarbitLoader();
         areaLoader = new RSAreaLoaderOSRS();
 
         MapIndexLoader.instance = mapIndexLoader;
