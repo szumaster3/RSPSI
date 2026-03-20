@@ -1740,42 +1740,7 @@ public class PredefiniedLocation {
                         "Name"
                 });
 
-
-        public Optional<String> showLocationDialog(Stage owner) {
-
-                List<String> locations = new ArrayList<>();
-                Map<String, String> coordMap = new HashMap<>();
-                for (int i = 0; i < model.getRowCount(); i++) {
-                        String coords = (String) model.getValueAt(i, 0);
-                        String name = (String) model.getValueAt(i, 1);
-
-                        String[] split = coords.split(",");
-                        String display = name + " - " + split[0] + "," + split[1];
-
-                        locations.add(display);
-                        coordMap.put(display, coords);
-                }
-
-
-                ChoiceDialog<String> dialog = new ChoiceDialog<>(locations.get(0), locations);
-                dialog.initOwner(owner);
-                dialog.initModality(Modality.APPLICATION_MODAL);
-
-                Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
-                stage.getIcons().clear();
-
-                dialog.setTitle("Select from predefined locations");
-                dialog.setHeaderText("Choose a location");
-                dialog.setContentText("Location:");
-                dialog.getDialogPane().getStylesheets().add(getClass().getResource("/css/layout.css").toExternalForm());
-                Optional<String> result = dialog.showAndWait();
-
-                if (result.isPresent()) {
-                        return Optional.of(coordMap.get(result.get()));
-                }
-
-                return Optional.empty();
+        public DefaultTableModel getModel() {
+                return model;
         }
-
-
 }

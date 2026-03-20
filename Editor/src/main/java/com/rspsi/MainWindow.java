@@ -982,59 +982,35 @@ public class MainWindow extends Application {
 		});
 
 		controller.getOpenCoordinateButton().setOnAction(evt -> {
+			PredefiniedLocation predefiniedLocation = new PredefiniedLocation();
 
-            PredefiniedLocation predefiniedLocation = new PredefiniedLocation();
-			Optional<String> selectedCoords = predefiniedLocation.showLocationDialog(stage);
+			pickCoords.loadLocations(predefiniedLocation.getModel());
+			pickCoords.show();
 
-            int hash;
-            int y;
-            int x;
-            if (selectedCoords.isPresent()) {
-                String[] split = selectedCoords.get().split(",");
-                x = Integer.parseInt(split[0]);
-                y = Integer.parseInt(split[1]);
+			if (!pickCoords.valid())
+				return;
 
-                x /= 64;
-                y /= 64;
-                hash = (x << 8) + y;
+			int x = pickCoords.getXCoordinate();
+			int y = pickCoords.getYCoordinate();
 
-                Client.runLater.add(() -> {
-                    clientInstance.loadCoordinates(
-                            (hash >> 8) * 64,
-                            (hash & 0xff) * 64,
-                            1,
-                            1
-                    );
-                    fullMapView.resizeMap();
-                });
+			x /= 64;
+			y /= 64;
 
-                return;
-            }
+			int hash = (x << 8) + y;
 
-            pickCoords.show();
-            if (!pickCoords.valid())
-                return;
+			int width = pickCoords.getWidth();
+			int length = pickCoords.getLength();
 
-            x = pickCoords.getXCoordinate();
-            y = pickCoords.getYCoordinate();
-
-            x /= 64;
-            y /= 64;
-            hash = (x << 8) + y;
-
-            int width = pickCoords.getWidth();
-            int length = pickCoords.getLength();
-
-            Client.runLater.add(() -> {
-                clientInstance.loadCoordinates(
-                        (hash >> 8) * 64,
-                        (hash & 0xff) * 64,
-                        width,
-                        length
-                );
-                fullMapView.resizeMap();
-            });
-        });
+			Client.runLater.add(() -> {
+				clientInstance.loadCoordinates(
+						(hash >> 8) * 64,
+						(hash & 0xff) * 64,
+						width,
+						length
+				);
+				fullMapView.resizeMap();
+			});
+		});
 	}
 
 	public static MainWindow getSingleton() {
