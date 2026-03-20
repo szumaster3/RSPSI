@@ -54,7 +54,7 @@ public class Cache {
 		spotAnimIndex = cacheLibrary.index(21);
 		varbitIndex = cacheLibrary.index(22);
 
-		log.info("Loaded cache in fat cunt format!");
+		log.info("Loaded cache in RS2 format!");
 
 		resourceProvider = new ResourceProvider(this);
 		Thread t = new Thread(resourceProvider);
