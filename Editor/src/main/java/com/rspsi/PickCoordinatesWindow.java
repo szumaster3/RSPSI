@@ -4,6 +4,7 @@ import com.google.common.primitives.Ints;
 import com.rspsi.resources.ResourceLoader;
 import com.rspsi.util.FXUtils;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
@@ -84,7 +85,7 @@ public class PickCoordinatesWindow extends Application {
 		lengthSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 1, 1));
 		FXUtils.addSpinnerFocusListeners(widthSpinner, lengthSpinner);
 
-		primaryStage.setOnShown(evt -> xCoordinate.requestFocus());
+		// primaryStage.setOnShown(evt -> xCoordinate.requestFocus());
 
 		okButton.setOnAction(evt -> {
 			primaryStage.hide();
@@ -135,9 +136,8 @@ public class PickCoordinatesWindow extends Application {
 	public void show() {
 		reset();
 		stage.sizeToScene();
-		xCoordinate.requestFocus();
 		stage.showAndWait();
-
+		Platform.runLater(() -> stage.getScene().getRoot().requestFocus());
 		if (!okClicked)
 			reset();
 	}

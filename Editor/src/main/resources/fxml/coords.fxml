@@ -11,8 +11,8 @@
 
       <HBox alignment="CENTER_LEFT" spacing="9.0">
          <children>
-            <TextField prefWidth="120.0" promptText="X Coordinate" fx:id="xCoordinate" />
-            <TextField fx:id="yCoordinate" prefWidth="120.0" promptText="Y Coordinate" />
+            <TextField fx:id="xCoordinate" prefWidth="120.0" promptText="X Coordinate" focusTraversable="false"/>
+            <TextField fx:id="yCoordinate" prefWidth="120.0" promptText="Y Coordinate" focusTraversable="false"/>
          </children>
          <padding>
             <Insets bottom="6.0" left="12.0" right="12.0" top="12.0" />

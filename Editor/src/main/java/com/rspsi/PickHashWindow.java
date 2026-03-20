@@ -71,7 +71,6 @@ public class PickHashWindow extends Application {
 	
 	public void show() {
 		reset();
-		hashText.requestFocus();
 		stage.sizeToScene();
 		stage.showAndWait();
 		if(!okClicked)
