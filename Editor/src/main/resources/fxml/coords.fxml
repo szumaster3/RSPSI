@@ -18,7 +18,14 @@
             <Insets bottom="6.0" left="12.0" right="12.0" top="12.0" />
          </padding>
       </HBox>
-
+      <HBox alignment="CENTER_LEFT">
+         <children>
+            <TextField fx:id="searchField" prefWidth="250.0" promptText="Search location..."  focusTraversable="false"/>
+         </children>
+         <padding>
+            <Insets bottom="6.0" left="12.0" right="12.0" top="0.0" />
+         </padding>
+      </HBox>
       <HBox alignment="CENTER_LEFT">
          <children>
             <ComboBox fx:id="locationComboBox" prefHeight="22.0" prefWidth="250.0" promptText="Select location" />

@@ -16,6 +16,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import java.util.stream.Collectors;
 
 import javax.swing.table.TableModel;
 import java.util.*;
@@ -35,6 +36,11 @@ public class PickCoordinatesWindow extends Application {
 
 	@FXML
 	private ComboBox<String> locationComboBox;
+
+	@FXML
+	private TextField searchField;
+
+	private List<String> allLocations = new ArrayList<>();
 
 	@FXML
 	private Button okButton;
@@ -81,6 +87,10 @@ public class PickCoordinatesWindow extends Application {
 			}
 		});
 
+		searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+			filterLocations(newVal);
+		});
+
 		widthSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 1, 1));
 		lengthSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 1, 1));
 		FXUtils.addSpinnerFocusListeners(widthSpinner, lengthSpinner);
@@ -112,8 +122,8 @@ public class PickCoordinatesWindow extends Application {
 	}
 
 	public void loadLocations(TableModel model) {
-		List<String> locations = new ArrayList<>();
 		coordMap.clear();
+		allLocations.clear();
 
 		for (int i = 0; i < model.getRowCount(); i++) {
 			String coords = (String) model.getValueAt(i, 0);
@@ -122,13 +132,32 @@ public class PickCoordinatesWindow extends Application {
 			String[] split = coords.split(",");
 			String display = name + " - " + split[0] + "," + split[1];
 
-			locations.add(display);
+			allLocations.add(display);
 			coordMap.put(display, coords);
 		}
 
-		locationComboBox.getItems().setAll(locations);
+		locationComboBox.getItems().setAll(allLocations);
 
-		if (!locations.isEmpty()) {
+		if (!allLocations.isEmpty()) {
+			locationComboBox.getSelectionModel().selectFirst();
+		}
+	}
+
+	private void filterLocations(String filter) {
+		if (filter == null || filter.isEmpty()) {
+			locationComboBox.getItems().setAll(allLocations);
+			return;
+		}
+
+		String lower = filter.toLowerCase();
+
+		List<String> filtered = allLocations.stream()
+				.filter(loc -> loc.toLowerCase().contains(lower))
+				.collect(Collectors.toList());
+
+		locationComboBox.getItems().setAll(filtered);
+
+		if (!filtered.isEmpty()) {
 			locationComboBox.getSelectionModel().selectFirst();
 		}
 	}
@@ -137,7 +166,7 @@ public class PickCoordinatesWindow extends Application {
 		reset();
 		stage.sizeToScene();
 		stage.showAndWait();
-		Platform.runLater(() -> stage.getScene().getRoot().requestFocus());
+
 		if (!okClicked)
 			reset();
 	}
