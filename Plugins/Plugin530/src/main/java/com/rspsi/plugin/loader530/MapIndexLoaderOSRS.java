@@ -95,30 +95,34 @@ public class MapIndexLoaderOSRS extends MapIndexLoader {
 
 	@Override
 	public void set(int regionX, int regionY, int landscapeId, int objectsId) {
-		int hash = (regionX << 8) + regionY;
+		int hash = (regionX << 8) | regionY;
+
 		int index = IntStream.range(0, mapHashes.length)
 				.filter(i -> hash == mapHashes[i])
 				.findFirst()
 				.orElse(-1);
-		if(index >= 0) {
-			System.out.println("Setting index " + index);
-			landscapes[index] = landscapeId;
-			objects[index] = objectsId;
-		} else {
-			System.out.println("Adding new index");
-			int[] mapHashes = Arrays.copyOf(this.mapHashes, this.landscapes.length + 1);
-			int[] landscapes = Arrays.copyOf(this.landscapes, this.landscapes.length + 1);
-			int[] objects = Arrays.copyOf(this.objects, this.landscapes.length + 1);
-			index = mapHashes.length - 1;
-			mapHashes[index] = hash;
-			landscapes[index] = landscapeId;
-			objects[index] = objectsId;
 
-			this.mapHashes = mapHashes;
-			this.landscapes = landscapes;
-			this.objects = objects;
+		if (index >= 0) {
+			landscapes[index] = landscapeId;
+			objects[index] = objectsId;
+			return;
 		}
 
+		int newSize = mapHashes.length + 1;
+
+		int[] newMapHashes = Arrays.copyOf(mapHashes, newSize);
+		int[] newLandscapes = Arrays.copyOf(landscapes, newSize);
+		int[] newObjects = Arrays.copyOf(objects, newSize);
+
+		int newIndex = newSize - 1;
+
+		newMapHashes[newIndex] = hash;
+		newLandscapes[newIndex] = landscapeId;
+		newObjects[newIndex] = objectsId;
+
+		this.mapHashes = newMapHashes;
+		this.landscapes = newLandscapes;
+		this.objects = newObjects;
 	}
 
 	public void init(Index mapIndex) {
@@ -128,7 +132,7 @@ public class MapIndexLoaderOSRS extends MapIndexLoader {
 			int y = (i & 0xFF);
 
 			Archive map = mapIndex.archive("m" + x + "_" + y);
-			Archive land = mapIndex.archive("l" + x + "_" + y, null);
+			Archive land = mapIndex.archive("l" + x + "_" + y);
 
 			RegionData data = new RegionData(i, map != null ? map.getId() : -1, land != null ? land.getId() : -1);
 

@@ -1,9 +1,8 @@
 package com.rspsi;
 
-import com.displee.cache.CacheLibrary;
-import com.displee.cache.index.Index;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
+import com.jagex.Cache;
 import com.jagex.Client;
 import com.jagex.cache.def.Floor;
 import com.jagex.cache.def.ObjectDefinition;
@@ -55,7 +54,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
@@ -77,6 +75,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.major.map.RenderFlags;
 
+import java.nio.ByteBuffer;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -85,13 +84,11 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Getter
@@ -860,24 +857,24 @@ public class MainWindow extends Application {
 				return;
 			}
 
-			Chunk chunk = clientInstance.chunks.get(0);
-			int landArchive = chunk.tileMapId;
-			int objectArchive = chunk.objectMapId;
-
-			CacheLibrary cache = CacheLibrary.create(Config.cacheLocation.get());
+			Cache cache = clientInstance.getCache();
 
 			new Thread(() -> {
 				try {
+					Chunk chunk = clientInstance.getCurrentChunk();
 
-					byte[] objectMap = clientInstance.sceneGraph.saveObjects(chunk);
+					int mapIndexId = 5;
+
+					int landArchive = chunk.tileMapId;
+					int objectArchive = chunk.objectMapId;
+
 					byte[] tileMap = chunk.mapRegion.save_terrain_block(chunk);
+					byte[] objectMap = clientInstance.sceneGraph.saveObjects(chunk);
 
-					Index index5 = cache.index(5);
-
-					cache.put(5, landArchive, tileMap);
-					cache.put(5, objectArchive, objectMap);
-
-					cache.update();
+					cache.getCacheLibrary().put(mapIndexId, landArchive, tileMap);
+					cache.getCacheLibrary().put(mapIndexId, objectArchive, objectMap);
+					cache.getCacheLibrary().update();
+					System.out.println("land=" + landArchive + ", object=" + objectArchive);
 
 				} catch (Exception e) {
 					e.printStackTrace();

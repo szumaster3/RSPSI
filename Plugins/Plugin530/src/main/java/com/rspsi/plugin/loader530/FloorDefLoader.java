@@ -11,17 +11,17 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 public class FloorDefLoader extends FloorDefinitionLoader {
 
-	private Map<Integer, Floor> overlays = Maps.newConcurrentMap();
-	private Map<Integer, Floor> underlays = Maps.newConcurrentMap();
+	private final Map<Integer, Floor> overlays = Maps.newConcurrentMap();
+	private final Map<Integer, Floor> underlays = Maps.newConcurrentMap();
 
 	@Override
 	public void init(Archive archive) {
-		
+		decodeUnderlays(archive);
+		decodeOverlays(archive);
 	}
 
 	@Override
@@ -31,304 +31,254 @@ public class FloorDefLoader extends FloorDefinitionLoader {
 
 	public void decodeUnderlays(Archive archive) {
 		for (int id : archive.fileIds()) {
-			File underlay = archive.file(id);
-			if (Objects.nonNull(underlay) && Objects.nonNull(underlay.getData())) {
+			File file = archive.file(id);
+			if (file != null && file.getData() != null) {
 				try {
-					Floor floor = decodeUnderlay(ByteBuffer.wrap(underlay.getData()));
-					floor.generateHsl();
+					Floor floor = decodeUnderlay(ByteBuffer.wrap(file.getData()));
 					underlays.put(id, floor);
 				} catch (Exception ex) {
-					log.warn("Failed to load underlay {}, size: {}", id, underlay);
+					log.warn("Failed to load underlay {}", id, ex);
 				}
 			}
 		}
-		log.info("Loaded {} underlays | max id: {}", underlays.size(), underlays.keySet().stream().max(Integer::compareTo));
+
+		log.info("Loaded {} underlays | max id: {}",
+				underlays.size(),
+				underlays.keySet().stream().max(Integer::compareTo).orElse(0));
+	}
+
+	public Floor decodeUnderlay(ByteBuffer buffer) {
+		Floor floor = new Floor();
+
+		int rgb = 0;
+
+		while (true) {
+			int opcode = buffer.get() & 0xFF;
+			if (opcode == 0)
+				break;
+
+			switch (opcode) {
+				case 1:
+					rgb = ByteBufferUtils.readU24Int(buffer);
+					floor.setRgb(rgb);
+					break;
+
+				case 2:
+					int texture = buffer.getShort() & 0xFFFF;
+					if (texture == 65535)
+						texture = -1;
+					floor.setTexture(texture);
+					break;
+
+				case 3:
+					buffer.getShort(); // textureSize
+					break;
+
+				case 4:
+					floor.setShadowed(false);
+					break;
+
+				default:
+					System.out.println("Unknown underlay opcode: " + opcode);
+					break;
+			}
+		}
+		rgb2hsl(floor, rgb);
+		return floor;
 	}
 
 	public void decodeOverlays(Archive archive) {
 		for (int id : archive.fileIds()) {
-			File overlay = archive.file(id);
-			if (Objects.nonNull(overlay) && Objects.nonNull(overlay.getData())) {
+			File file = archive.file(id);
+			if (file != null && file.getData() != null) {
 				try {
-					Floor floor = decodeOverlay(ByteBuffer.wrap(overlay.getData()));
-					floor.generateHsl();
+					Floor floor = decodeOverlay(ByteBuffer.wrap(file.getData()));
 					overlays.put(id, floor);
 				} catch (Exception ex) {
-					log.warn("Failed to load underlay {}, size: {}", id, overlay);
+					log.warn("Failed to load overlay {}", id, ex);
 				}
 			}
-
 		}
 
-		log.info("Loaded {} overlays", overlays.size(), overlays.keySet().stream().max(Integer::compareTo));
+		log.info("Loaded {} overlays | max id: {}",
+				overlays.size(),
+				overlays.keySet().stream().max(Integer::compareTo).orElse(0));
 	}
 
 	public Floor decodeOverlay(ByteBuffer buffer) {
 		Floor floor = new Floor();
 
-		int last = -1;
+		int texture = -1;
+
 		while (true) {
-			int opcode = buffer.get();
+			int opcode = buffer.get() & 0xFF;
 			if (opcode == 0)
 				break;
-			if (opcode == 1) {
-				floor.setRgb(ByteBufferUtils.readU24Int(buffer));
-			} else if (opcode == 2) {
-				int texture = buffer.get() & 0xff;
-				if (texture == 65535) {
-					texture = -1;
-				}
-				floor.setTexture(texture);
-			} else if(opcode == 3) {
-				int id = buffer.getShort() & 0xffff;
-				if (id == 65535) {
-					id = -1;
-				}
-				floor.setTexture(id);
-			} else if (opcode == 5) {
-				floor.setShadowed(false);
-			} else if (opcode == 7) {
-				int anotherRgb = ByteBufferUtils.readU24Int(buffer);
-				floor.setAnotherRgb(anotherRgb);
-			} else if (opcode == 8) {
-				//unknown
-			} else if (opcode == 9) {
-				//scale
-				int scale = buffer.getShort() & 0xffff;
-			} else if (opcode == 10) {
-				//unknown
-			} else if (opcode == 11) {
-				int i = buffer.get() & 0xff;
-			} else if (opcode == 12) {
-				//unknown
-			} else if (opcode == 13) {
-				//water color
-				int i = ByteBufferUtils.readU24Int(buffer);
-			} else if (opcode == 14) {
-				//water scale
-				int i = buffer.get() & 0xff << 2;
-			} else if (opcode == 16) {
-				//water intensity
-				int i = buffer.get() & 0xff;
-			} else if (opcode == 20) {
-				int i = buffer.getShort() & 0xffff;
-			} else if (opcode == 21) {
-				int i = buffer.get() & 0xff;
-			} else if (opcode == 22) {
-				int i = buffer.getShort() & 0xffff;
-			} else {
-				System.out.println("Error overlay code: " + opcode + " last: " + last);
-				continue;
+
+			switch (opcode) {
+
+				case 1:
+					floor.setRgb(ByteBufferUtils.readU24Int(buffer));
+					break;
+
+				case 2:
+					texture = buffer.get() & 0xFF;
+					floor.setTexture(texture);
+					break;
+
+				case 3:
+					texture = buffer.getShort() & 0xFFFF;
+					if (texture == 65535)
+						texture = -1;
+					floor.setTexture(texture);
+					break;
+
+				case 5:
+					// hideUnderlay = false
+					break;
+
+				case 7:
+					int secondaryRgb = ByteBufferUtils.readU24Int(buffer);
+					floor.setAnotherRgb(secondaryRgb);
+					break;
+
+				case 8:
+					break;
+
+				case 9:
+					buffer.getShort(); // scale
+					break;
+
+				case 10:
+					// blockShadow
+					break;
+
+				case 11:
+					buffer.get(); // brightness
+					break;
+
+				case 12:
+					// blendTexture
+					break;
+
+				case 13:
+					ByteBufferUtils.readU24Int(buffer); // waterColor
+					break;
+
+				case 14:
+					buffer.get(); // waterScale
+					break;
+
+				case 15:
+					int i = buffer.getShort() & 0xFFFF;
+					if (i == 65535)
+						i = -1;
+					break;
+
+				case 16:
+					buffer.get(); // waterIntensity
+					break;
+
+				default:
+					System.out.println("Unknown overlay opcode: " + opcode);
+					break;
 			}
-			last = opcode;
 		}
+
+		floor.generateHsl();
+
 		return floor;
 	}
 
-	public Floor decodeUnderlay(ByteBuffer buffer) {
-		Floor floor = new Floor();
-		int last = -1;
-		while (true) {
-			int opcode = buffer.get();
-			if (opcode == 0)
-				break;
-			if (opcode == 1) {
-				floor.setRgb(ByteBufferUtils.readU24Int(buffer));
-			} else if (opcode == 2) {
-				int texture = buffer.getShort() & 0xff;
-				if (texture == 65535) {
-					texture = -1;
-				}
-				floor.setTexture(texture);
-			} else if(opcode == 3) {
-				int id = buffer.getShort() & 0xffff;
-				floor.setTexture(id);
-			} else {
-				System.out.println("Error underlay code: " + opcode + " last: " + last);
-				continue;
-			}
-			last = opcode;
-		}
-		return floor;
-	}
+	private void rgb2hsl(Floor floor, int rgb) {
+		double r = (rgb >> 16 & 0xff) / 256.0;
+		double g = (rgb >> 8 & 0xff) / 256.0;
+		double b = (rgb & 0xff) / 256.0;
 
-	private static int rgb2hsl(int color) {
-		double r = (double) ((color >>> 16) & 0xff) / 256.0D;
-		double g = (double) ((color >>> 8) & 0xff) / 256.0D;
-		double b = (double) (color & 0xff) / 256.0D;
-		double min = r;
-		if (min > g)
-			min = g;
+		double min = Math.min(r, Math.min(g, b));
+		double max = Math.max(r, Math.max(g, b));
 
-		if (min > b)
-			min = b;
+		double h = 0.0;
+		double s = 0.0;
+		double l = (min + max) / 2.0;
 
-		double max = r;
-		if (g > max)
-			max = g;
-
-		if (b > max)
-			max = b;
-
-		double hue = 0.0;
-		double saturation = 0.0;
-		double luminance = (min + max) / 2.0D;
-		if (max != min)
-		{
-			if (luminance < 0.5D)
-				saturation = (max - min) / (min + max);
-
-			if (max != r)
-			{
-				if (max == g)
-					hue = (b - r) / (max - min) + 2.0D;
-				else if (max == b)
-					hue = (r - g) / (max - min) + 4.0D;
-
-			}
-			else
-				hue = (g - b) / (max - min);
-
-			if (luminance >= 0.5D)
-				saturation = (max - min) / (2.0D - min - max);
-
-		}
-		hue /= 6.0D;
-		int hueOverlay = (int) (hue * 256.0D);
-		int satOverlay = (int) (saturation * 256.0D);
-		int lumOverlay = (int) (luminance * 256.0D);
-		if (satOverlay < 0)
-			satOverlay = 0;
-		else if (satOverlay > 0xff)
-			satOverlay = 0xff;
-
-		if (lumOverlay < 0)
-			lumOverlay = 0;
-		else if (lumOverlay > 0xff)
-			lumOverlay = 0xff;
-
-		if (lumOverlay > 242)
-			satOverlay >>= 4;
-		else if (lumOverlay > 217)
-			satOverlay >>= 3;
-		else if (lumOverlay > 192)
-			satOverlay >>= 2;
-		else if (lumOverlay > 179)
-			satOverlay >>= 1;
-
-		return (lumOverlay >> 1) + ((satOverlay >> 5 << 7) + ((hueOverlay & 0xff) >> 2 << 10));
-	}
-
-	private void rgbhsl(Floor floor, int color) {
-		double red = (double) (color >> 16 & 0xff) / 255.0;
-		double green = (double) (color >> 8 & 0xff) / 255.0;
-		double blue = (double) (color & 0xff) / 255.0;
-		double min = red;
-		if (green < min)
-			min = green;
-		if (blue < min)
-			min = blue;
-		double max = red;
-		if (green > max)
-			max = green;
-		if (blue > max)
-			max = blue;
-		double hue = 0.0;
-		double saturation = 0.0;
-		double luminance = (min + max) / 2.0;
 		if (min != max) {
-			if (luminance < 0.5)
-				saturation = (max - min) / (max + min);
-			if (luminance >= 0.5)
-				saturation = (max - min) / (2.0 - max - min);
-			if (red == max)
-				hue = (green - blue) / (max - min);
-			else if (green == max)
-				hue = 2.0 + (blue - red) / (max - min);
-			else if (blue == max)
-				hue = 4.0 + (red - green) / (max - min);
+			if (l < 0.5)
+				s = (max - min) / (max + min);
+			else
+				s = (max - min) / (2.0 - max - min);
+
+			if (r == max)
+				h = (g - b) / (max - min);
+			else if (g == max)
+				h = 2.0 + (b - r) / (max - min);
+			else
+				h = 4.0 + (r - g) / (max - min);
 		}
-		hue /= 6.0;
-		int groundHueOverlay = (int) (hue * 255.0);
-		int groundSaturationOverlay = (int) (saturation * 255.0);
-		int groundLightnessOverlay = (int) (luminance * 255.0);
 
-		floor.setHue(groundHueOverlay);
-		floor.setSaturation(groundSaturationOverlay);
-		floor.setLuminance(groundLightnessOverlay);
+		h /= 6.0;
 
-		int chroma_overlay = 0;
-		int weighted_hue = 0;
-		int hslOverlayColour = 0;
+		int hue = (int) (h * 256.0);
+		int sat = (int) (s * 256.0);
+		int lum = (int) (l * 256.0);
 
-		int hue_overlay = groundHueOverlay;
-		int sat_overlay = groundSaturationOverlay;
-		int lum_overlay = groundLightnessOverlay;
-		if (sat_overlay < 0)
-			sat_overlay = 0;
-		else if (sat_overlay > 255)
-			sat_overlay = 255;
-		if (lum_overlay < 0)
-			lum_overlay = 0;
-		else if (lum_overlay > 255)
-			lum_overlay = 255;
-		if (luminance > 0.5)
-			chroma_overlay = (int) ((1.0 - luminance) * saturation * 512.0);
-		else
-			chroma_overlay = (int) (luminance * saturation * 512.0);
-		if (chroma_overlay < 1)
-			chroma_overlay = 1;
-		weighted_hue = (int) (hue * (double) chroma_overlay);
-		int hue_offset = hue_overlay;
-		int sat_offset = sat_overlay;
-		int lum_offset = lum_overlay;
-		hslOverlayColour = encode(hue_offset, sat_offset, lum_offset);
+		sat = Math.max(0, Math.min(255, sat));
+		lum = Math.max(0, Math.min(255, lum));
 
-		floor.setChroma(chroma_overlay);
-		floor.setColour(hslOverlayColour);
-		floor.setWeightedHue(weighted_hue);
+		int chroma = (l > 0.5)
+				? (int) ((1.0 - l) * s * 512.0)
+				: (int) (l * s * 512.0);
+
+		if (chroma < 1) chroma = 1;
+
+		int weightedHue = (int) (h * chroma);
+
+		floor.setHue(hue);
+		floor.setSaturation(sat);
+		floor.setLuminance(lum);
+		floor.setChroma(chroma);
+		floor.setWeightedHue(weightedHue);
+		floor.setColour(encodeHsl(hue, sat, lum));
 	}
 
-	private final int encode(int arg0, int arg1, int arg2) {
-		if (arg2 > 179)
-			arg1 /= 2;
-		if (arg2 > 192)
-			arg1 /= 2;
-		if (arg2 > 217)
-			arg1 /= 2;
-		if (arg2 > 243)
-			arg1 /= 2;
-		int i = (arg0 / 4 << 10) + (arg1 / 32 << 7) + arg2 / 2;
-		return i;
-	}
+	private int encodeHsl(int h, int s, int l) {
+		if (l > 179) s /= 2;
+		if (l > 192) s /= 2;
+		if (l > 217) s /= 2;
+		if (l > 243) s /= 2;
 
+		return (h / 4 << 10) + (s / 32 << 7) + l / 2;
+	}
 
 	@Override
 	public Floor getFloor(int id, FloorType type) {
-		if(type == FloorType.OVERLAY) return overlays.computeIfAbsent(id, FloorDefLoader::emptyFloor);
-		else return underlays.computeIfAbsent(id, FloorDefLoader::emptyFloor);
+		if (type == FloorType.OVERLAY)
+			return overlays.computeIfAbsent(id, FloorDefLoader::emptyFloor);
+		else
+			return underlays.computeIfAbsent(id, FloorDefLoader::emptyFloor);
 	}
 
 	@Override
 	public int getSize(FloorType type) {
-		if(type == FloorType.OVERLAY) return overlays.keySet().stream().max(Integer::compareTo).orElse(0);
-		else return underlays.keySet().stream().max(Integer::compareTo).orElse(0);
+		if (type == FloorType.OVERLAY)
+			return overlays.keySet().stream().max(Integer::compareTo).orElse(0);
+		else
+			return underlays.keySet().stream().max(Integer::compareTo).orElse(0);
 	}
 
 	@Override
 	public int count() {
-		return 0;
+		return overlays.size() + underlays.size();
 	}
 
-	private static Floor emptyFloor(int id){
+	private static Floor emptyFloor(int id) {
 		Floor floor = new Floor();
 		floor.generateHsl();
 		return floor;
 	}
 
 	@Override
-	public Floor forId(int arg0) {
-		return null;
+	public Floor forId(int id) {
+		return overlays.getOrDefault(id, underlays.get(id));
 	}
-
 }
